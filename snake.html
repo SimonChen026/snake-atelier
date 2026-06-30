@@ -3,107 +3,509 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>贪吃蛇 Arena</title>
+<title>贪吃蛇 Atelier</title>
+<link rel="icon" href="data:,">
 <style>
   :root{
-    --bg:#0b0e14; --bg2:#10141d; --panel:#161b27; --panel2:#1d2330;
-    --line:#252c3b; --text:#e7ecf3; --muted:#8a93a6; --faint:#5c6479;
-    --green:#3ddc84; --green2:#28b866; --accent:#5b8cff; --accent2:#3a6ff0;
-    --red:#ff5a5f; --gold:#ffcf4d; --radius:14px;
+    --bg:#f4ead8;
+    --bg-deep:#ead9bd;
+    --paper:#fffaf0;
+    --paper-2:#f8f0e2;
+    --paper-3:#efe0c7;
+    --ink:#2f2a23;
+    --muted:#766c5e;
+    --faint:#9b907f;
+    --line:#dccbb0;
+    --line-strong:#c9b28f;
+    --leaf:#2f7d63;
+    --leaf-2:#21634d;
+    --blue:#315d83;
+    --red:#bd4d42;
+    --gold:#b98428;
+    --violet:#7557a8;
+    --shadow:0 18px 42px rgba(80,54,24,.16);
+    --radius:8px;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{margin:0; height:100%;}
+  html,body{margin:0; min-height:100%;}
   body{
-    background:radial-gradient(1200px 700px at 50% -10%, #161d2c 0%, var(--bg) 60%);
-    color:var(--text);
+    background:
+      linear-gradient(180deg, rgba(255,250,240,.94), rgba(244,234,216,.98) 46%, rgba(232,214,184,.96)),
+      repeating-linear-gradient(90deg, rgba(125,92,50,.035) 0 1px, transparent 1px 28px);
+    color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
-    display:flex; min-height:100vh;
+    display:flex;
+    min-height:100vh;
     overflow-x:hidden;
   }
-  #app{ width:100%; max-width:520px; padding:18px; margin:auto; }
-
-  .screen{ display:none; flex-direction:column; gap:16px; animation:fade .25s ease; }
-  .screen.active{ display:flex; }
-  @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
-
-  .logo{ font-size:30px; font-weight:800; letter-spacing:.5px; margin:0; text-align:center; }
-  .logo span{ background:linear-gradient(90deg,var(--green),var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  .tagline{ text-align:center; color:var(--muted); margin:0; font-size:14px; }
-
-  .card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:22px; }
-  .auth-card{ display:flex; flex-direction:column; gap:14px; }
-
-  .tabs{ display:flex; background:var(--bg2); border:1px solid var(--line); border-radius:10px; padding:4px; gap:4px; }
-  .tabs button{ flex:1; border:0; background:transparent; color:var(--muted); padding:9px; border-radius:7px; font-size:14px; font-weight:600; cursor:pointer; transition:.15s; }
-  .tabs button.active{ background:var(--panel2); color:var(--text); }
-
-  .field input{ width:100%; background:var(--bg2); border:1px solid var(--line); color:var(--text); padding:12px 14px; border-radius:10px; font-size:15px; outline:none; transition:.15s; }
-  .field input:focus{ border-color:var(--accent); box-shadow:0 0 0 3px rgba(91,140,255,.18); }
-
-  .btn{ border:0; border-radius:11px; padding:13px; font-size:15px; font-weight:700; cursor:pointer; transition:.15s; width:100%; }
-  .btn:active{ transform:scale(.98); }
-  .btn.primary{ background:linear-gradient(180deg,var(--green),var(--green2)); color:#06301c; }
-  .btn.accent{ background:linear-gradient(180deg,var(--accent),var(--accent2)); color:#fff; }
-  .btn.ghost{ background:transparent; color:var(--muted); border:1px solid var(--line); }
-  .btn.small{ width:auto; padding:8px 14px; font-size:13px; background:var(--panel2); color:var(--text); border:1px solid var(--line); }
-  .msg{ min-height:18px; margin:0; font-size:13px; text-align:center; color:var(--red); }
-  .msg.ok{ color:var(--green); }
-
-  .topbar{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
-  .topbar .who{ font-size:14px; color:var(--muted); }
-  .topbar .who b{ color:var(--text); }
-
-  .mode-grid{ display:flex; flex-direction:column; gap:14px; }
-  .mode-card{ position:relative; overflow:hidden; background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:20px; cursor:pointer; transition:.18s; }
-  .mode-card:hover{ border-color:var(--accent); transform:translateY(-2px); }
-  .mode-card h3{ margin:0 0 6px; font-size:19px; }
-  .mode-card p{ margin:0; color:var(--muted); font-size:13.5px; line-height:1.5; }
-  .mode-card .emoji{ position:absolute; right:14px; top:10px; font-size:46px; opacity:.18; }
-  .mode-card .meta{ margin-top:10px; font-size:12px; color:var(--green); font-weight:600; }
-
-  .level-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:9px; }
-  .lv{ aspect-ratio:1; border-radius:10px; border:1px solid var(--line); background:var(--panel); color:var(--text); font-weight:700; font-size:15px; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:.15s; position:relative; }
-  .lv:hover:not(.locked){ border-color:var(--accent); transform:translateY(-2px); }
-  .lv.locked{ color:var(--faint); cursor:not-allowed; background:var(--bg2); }
-  .lv.locked::before{ content:"🔒"; position:absolute; top:3px; left:5px; font-size:9px; opacity:.75; }
-  .lv.locked .tag{ color:var(--faint); }
-  .lv.done{ border-color:var(--green2); }
-  .lv.done::after{ content:"★"; position:absolute; top:3px; right:6px; font-size:10px; color:var(--gold); }
-  .lv .tag{ font-size:9px; color:var(--muted); font-weight:600; }
-  .lv.boss{ border-color:var(--gold); }
-  @keyframes shake{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-4px)} 60%{transform:translateX(4px)} }
-  .lv.shake{ animation:shake .25s; }
-
-  .toast{ position:fixed; left:50%; bottom:34px; transform:translateX(-50%) translateY(10px); background:var(--panel2); border:1px solid var(--line); color:var(--text); padding:10px 18px; border-radius:10px; font-size:14px; opacity:0; pointer-events:none; transition:.2s; z-index:50; box-shadow:0 8px 24px rgba(0,0,0,.4); }
-  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
-
-  .hud{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
-  .hud-stats{ display:flex; gap:14px; flex:1; justify-content:center; }
-  .hud-stats > div{ text-align:center; }
-  .hud-stats label{ display:block; font-size:10px; color:var(--faint); text-transform:uppercase; letter-spacing:.5px; }
-  .hud-stats span{ font-size:17px; font-weight:800; }
-
-  .game-wrap{ position:relative; align-self:center; border-radius:var(--radius); overflow:hidden; border:1px solid var(--line); background:var(--bg2); line-height:0; max-width:100%; }
-  canvas{ display:block; }
-
-  .overlay{ position:absolute; inset:0; background:rgba(8,11,17,.78); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; }
-  .overlay.hidden{ display:none; }
-  .overlay-card{ text-align:center; padding:26px; }
-  .overlay-card h2{ margin:0 0 6px; font-size:26px; }
-  .overlay-card p{ margin:0 0 18px; color:var(--muted); font-size:14px; }
-  #ov-actions{ display:flex; flex-direction:column; gap:10px; min-width:200px; }
-
-  .hint{ text-align:center; color:var(--faint); font-size:12px; }
-  .row{ display:flex; gap:10px; }
-  .row > *{ flex:1; }
+  button,input{font:inherit;}
+  button{touch-action:manipulation;}
+  #app{
+    width:100%;
+    max-width:930px;
+    margin:auto;
+    padding:18px;
+  }
+  .screen{
+    display:none;
+    flex-direction:column;
+    gap:16px;
+    animation:fade .2s ease;
+  }
+  .screen.active{display:flex;}
+  @keyframes fade{
+    from{opacity:0; transform:translateY(5px);}
+    to{opacity:1; transform:none;}
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    margin:0;
+    color:var(--ink);
+    font-size:31px;
+    font-weight:850;
+    letter-spacing:0;
+  }
+  .brand-mark{
+    display:grid;
+    place-items:center;
+    width:42px;
+    height:42px;
+    border-radius:8px;
+    background:var(--leaf);
+    color:#fffaf0;
+    box-shadow:inset 0 -3px 0 rgba(0,0,0,.14);
+  }
+  .brand span:last-child{color:var(--leaf-2);}
+  .tagline{
+    margin:0;
+    color:var(--muted);
+    text-align:center;
+    font-size:14px;
+  }
+  .card{
+    background:rgba(255,250,240,.92);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:20px;
+  }
+  .compact-card{
+    background:rgba(255,250,240,.78);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px;
+  }
+  .auth-card{
+    display:flex;
+    flex-direction:column;
+    gap:13px;
+    max-width:430px;
+    width:100%;
+    align-self:center;
+  }
+  .tabs{
+    display:flex;
+    gap:4px;
+    padding:4px;
+    background:var(--paper-2);
+    border:1px solid var(--line);
+    border-radius:8px;
+  }
+  .tabs button{
+    flex:1;
+    border:0;
+    border-radius:6px;
+    color:var(--muted);
+    background:transparent;
+    padding:9px 10px;
+    font-weight:750;
+    cursor:pointer;
+  }
+  .tabs button.active{
+    color:#fffaf0;
+    background:var(--leaf);
+  }
+  .field input{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:8px;
+    color:var(--ink);
+    background:#fffdf7;
+    padding:12px 13px;
+    outline:none;
+  }
+  .field input:focus{
+    border-color:var(--leaf);
+    box-shadow:0 0 0 3px rgba(47,125,99,.16);
+  }
+  .btn{
+    width:100%;
+    border:0;
+    border-radius:8px;
+    padding:12px 14px;
+    font-weight:800;
+    color:var(--ink);
+    background:var(--paper-3);
+    cursor:pointer;
+    transition:transform .14s ease, box-shadow .14s ease, background .14s ease, border-color .14s ease;
+  }
+  .btn:hover{box-shadow:0 8px 20px rgba(80,54,24,.13);}
+  .btn:active{transform:translateY(1px) scale(.99);}
+  .btn.primary{background:var(--leaf); color:#fffaf0;}
+  .btn.accent{background:var(--blue); color:#fffaf0;}
+  .btn.warn{background:var(--red); color:#fffaf0;}
+  .btn.gold{background:var(--gold); color:#fffaf0;}
+  .btn.ghost{
+    background:transparent;
+    color:var(--muted);
+    border:1px solid var(--line);
+  }
+  .btn.small{
+    width:auto;
+    min-height:36px;
+    padding:8px 12px;
+    font-size:13px;
+    border:1px solid var(--line);
+    background:#fffaf0;
+  }
+  .msg{
+    min-height:18px;
+    margin:0;
+    color:var(--red);
+    text-align:center;
+    font-size:13px;
+  }
+  .msg.ok{color:var(--leaf);}
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .who{
+    color:var(--muted);
+    font-size:14px;
+  }
+  .who b{color:var(--ink);}
+  .menu-head{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:14px;
+    align-items:end;
+  }
+  .menu-title{
+    margin:0;
+    font-size:28px;
+    line-height:1.1;
+  }
+  .menu-title span{color:var(--leaf-2);}
+  .stats-strip{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+  }
+  .stat{
+    min-height:66px;
+    background:rgba(255,250,240,.82);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px;
+  }
+  .stat label{
+    display:block;
+    color:var(--faint);
+    font-size:12px;
+  }
+  .stat b{
+    display:block;
+    margin-top:4px;
+    font-size:22px;
+  }
+  .mode-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+  }
+  .mode-card{
+    position:relative;
+    min-height:154px;
+    overflow:hidden;
+    text-align:left;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:rgba(255,250,240,.88);
+    padding:16px;
+    cursor:pointer;
+  }
+  .mode-card:hover{
+    border-color:var(--line-strong);
+    box-shadow:0 12px 26px rgba(80,54,24,.14);
+    transform:translateY(-1px);
+  }
+  .mode-card h3{
+    margin:0 0 7px;
+    font-size:19px;
+  }
+  .mode-card p{
+    margin:0;
+    max-width:86%;
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.5;
+  }
+  .mode-card .icon{
+    position:absolute;
+    right:13px;
+    bottom:12px;
+    width:46px;
+    height:46px;
+    border-radius:8px;
+    display:grid;
+    place-items:center;
+    color:#fffaf0;
+    font-size:25px;
+    background:var(--leaf);
+  }
+  .mode-card .meta{
+    margin-top:12px;
+    color:var(--leaf-2);
+    font-size:12px;
+    font-weight:800;
+  }
+  .mode-card[data-mode="timed"] .icon{background:var(--gold);}
+  .mode-card[data-mode="duel"] .icon{background:var(--red);}
+  .mode-card[data-mode="maze"] .icon{background:var(--blue);}
+  .mode-card[data-mode="rush"] .icon{background:var(--violet);}
+  .mode-card[data-mode="saves"] .icon{background:#775a38;}
+  .level-grid{
+    display:grid;
+    grid-template-columns:repeat(10,1fr);
+    gap:8px;
+  }
+  .lv{
+    aspect-ratio:1;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:#fffaf0;
+    color:var(--ink);
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:1px;
+    font-size:14px;
+    font-weight:850;
+    position:relative;
+  }
+  .lv:hover:not(.locked){border-color:var(--leaf); box-shadow:0 8px 16px rgba(47,125,99,.14);}
+  .lv.locked{cursor:not-allowed; color:var(--faint); background:#f2e6d2;}
+  .lv.locked::before{content:"锁"; position:absolute; top:4px; left:5px; font-size:10px; color:var(--faint);}
+  .lv.done{border-color:var(--leaf); background:#f3fbf3;}
+  .lv.done::after{content:"★"; position:absolute; top:3px; right:6px; color:var(--gold); font-size:11px;}
+  .lv.boss{border-color:var(--gold);}
+  .lv.portal{box-shadow:inset 0 0 0 2px rgba(49,93,131,.18);}
+  .lv .tag{color:var(--muted); font-size:9px; font-weight:700;}
+  @keyframes shake{0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)}}
+  .lv.shake{animation:shake .24s;}
+  .game-layout{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 220px;
+    gap:14px;
+    align-items:start;
+  }
+  .game-column{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+  }
+  .hud{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .hud-stats{
+    display:grid;
+    grid-template-columns:repeat(6, minmax(58px,1fr));
+    gap:8px;
+    flex:1;
+  }
+  .hud-stats > div{
+    min-height:52px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:rgba(255,250,240,.84);
+    padding:7px 8px;
+    text-align:center;
+  }
+  .hud-stats label{
+    display:block;
+    color:var(--faint);
+    font-size:10px;
+  }
+  .hud-stats span{
+    display:block;
+    margin-top:2px;
+    font-size:16px;
+    font-weight:850;
+    white-space:nowrap;
+  }
+  .game-wrap{
+    position:relative;
+    max-width:100%;
+    overflow:hidden;
+    border:1px solid var(--line-strong);
+    border-radius:8px;
+    background:#f6ead5;
+    box-shadow:0 18px 44px rgba(80,54,24,.18);
+    line-height:0;
+  }
+  canvas{display:block;}
+  .side-panel{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .inventory{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .pill{
+    min-height:48px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:rgba(255,250,240,.82);
+    padding:8px;
+  }
+  .pill label{
+    display:block;
+    color:var(--faint);
+    font-size:11px;
+  }
+  .pill b{
+    display:block;
+    margin-top:3px;
+    font-size:17px;
+  }
+  .dpad{
+    display:grid;
+    grid-template-columns:58px 58px 58px;
+    grid-template-rows:58px 58px 58px;
+    gap:8px;
+    justify-content:center;
+    padding:10px 0 2px;
+  }
+  .dpad button{
+    border:1px solid var(--line-strong);
+    border-radius:8px;
+    background:#fffaf0;
+    color:var(--ink);
+    font-size:22px;
+    font-weight:900;
+    cursor:pointer;
+    box-shadow:0 8px 18px rgba(80,54,24,.12);
+  }
+  .dpad button:active{transform:translateY(1px); background:var(--paper-3);}
+  .dpad .up{grid-column:2; grid-row:1;}
+  .dpad .left{grid-column:1; grid-row:2;}
+  .dpad .center{grid-column:2; grid-row:2; background:var(--leaf); color:#fffaf0;}
+  .dpad .right{grid-column:3; grid-row:2;}
+  .dpad .down{grid-column:2; grid-row:3;}
+  .overlay{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(61,45,26,.38);
+    backdrop-filter:blur(3px);
+    padding:18px;
+  }
+  .overlay.hidden{display:none;}
+  .overlay-card{
+    width:min(360px,100%);
+    border:1px solid var(--line-strong);
+    border-radius:8px;
+    background:rgba(255,250,240,.96);
+    box-shadow:var(--shadow);
+    padding:20px;
+    text-align:center;
+  }
+  .overlay-card h2{margin:0 0 6px; font-size:25px;}
+  .overlay-card p{margin:0 0 15px; color:var(--muted); font-size:14px;}
+  #ov-actions{display:flex; flex-direction:column; gap:9px;}
+  .save-list{
+    display:grid;
+    gap:10px;
+  }
+  .save-row{
+    display:grid;
+    grid-template-columns:1fr auto auto;
+    gap:8px;
+    align-items:center;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:rgba(255,250,240,.8);
+    padding:10px;
+  }
+  .save-row h3{margin:0 0 3px; font-size:16px;}
+  .save-row p{margin:0; color:var(--muted); font-size:12px;}
+  .save-row .btn{width:auto; min-width:64px; padding:8px 10px; font-size:13px;}
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:30px;
+    transform:translateX(-50%) translateY(10px);
+    z-index:50;
+    max-width:min(520px,calc(100vw - 32px));
+    opacity:0;
+    pointer-events:none;
+    color:#fffaf0;
+    background:rgba(47,42,35,.92);
+    border-radius:8px;
+    padding:10px 16px;
+    font-size:14px;
+    transition:.18s ease;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .row{display:flex; gap:10px;}
+  .row > *{flex:1;}
+  @media (max-width:780px){
+    #app{padding:14px; max-width:620px;}
+    .menu-head{grid-template-columns:1fr;}
+    .stats-strip{grid-template-columns:repeat(2,1fr);}
+    .mode-grid{grid-template-columns:1fr;}
+    .level-grid{grid-template-columns:repeat(5,1fr);}
+    .game-layout{grid-template-columns:1fr;}
+    .side-panel{order:2;}
+    .hud{flex-wrap:wrap;}
+    .hud-stats{order:3; flex-basis:100%; grid-template-columns:repeat(3,1fr);}
+    .save-row{grid-template-columns:1fr; align-items:stretch;}
+    .save-row .btn{width:100%;}
+  }
+  @media (max-width:420px){
+    .brand{font-size:26px;}
+    .brand-mark{width:38px; height:38px;}
+    .stats-strip{grid-template-columns:1fr 1fr;}
+    .hud-stats{grid-template-columns:repeat(2,1fr);}
+    .dpad{grid-template-columns:54px 54px 54px; grid-template-rows:54px 54px 54px;}
+  }
 </style>
 </head>
 <body>
 <div id="app">
 
   <section id="screen-auth" class="screen active">
-    <h1 class="logo">🐍 贪吃蛇 <span>Arena</span></h1>
-    <p class="tagline">登录保存你的闯关进度与最高分</p>
+    <h1 class="brand"><span class="brand-mark">蛇</span><span>贪吃蛇 Atelier</span></h1>
+    <p class="tagline">米白色竞技场 · 多模式 · 本地存盘</p>
     <div class="card auth-card">
       <div class="tabs">
         <button data-tab="login" class="active">登录</button>
@@ -122,20 +524,53 @@
       <span class="who">你好，<b id="menu-user">玩家</b></span>
       <button id="btn-logout" class="btn small">退出登录</button>
     </div>
-    <h1 class="logo">选择 <span>模式</span></h1>
+    <div class="menu-head">
+      <h1 class="menu-title">选择 <span>竞技场</span></h1>
+      <button id="btn-save-center" class="btn small">存档中心</button>
+    </div>
+    <div class="stats-strip">
+      <div class="stat"><label>闯关</label><b id="stat-campaign">0/100</b></div>
+      <div class="stat"><label>无尽</label><b id="stat-endless">0</b></div>
+      <div class="stat"><label>限时</label><b id="stat-timed">0</b></div>
+      <div class="stat"><label>存档</label><b id="stat-saves">0/3</b></div>
+    </div>
     <div class="mode-grid">
-      <div class="mode-card" data-mode="campaign">
-        <span class="emoji">🏰</span>
+      <button class="mode-card" data-mode="campaign">
         <h3>闯关模式</h3>
-        <p>100 个关卡，逐步加入障碍、敌方蛇与提速。击败前一关方可解锁下一关。</p>
+        <p>100 关渐进挑战，障碍、穿墙、传送门与敌方蛇会逐步登场。</p>
         <div class="meta" id="menu-campaign-meta">进度 0 / 100</div>
-      </div>
-      <div class="mode-card" data-mode="endless">
-        <span class="emoji">♾️</span>
+        <span class="icon">城</span>
+      </button>
+      <button class="mode-card" data-mode="endless">
         <h3>无尽模式</h3>
-        <p>没有终点。越吃越快，敌方蛇陆续登场，看你能撑到多少分。</p>
+        <p>食物不断刷新，速度逐步提高，敌方蛇会按分数加入棋盘。</p>
         <div class="meta" id="menu-endless-meta">最高分 0</div>
-      </div>
+        <span class="icon">∞</span>
+      </button>
+      <button class="mode-card" data-mode="timed">
+        <h3>限时冲刺</h3>
+        <p>90 秒内尽量拿分，道具更密集，金色食物会带来额外分数。</p>
+        <div class="meta" id="menu-timed-meta">最高分 0</div>
+        <span class="icon">时</span>
+      </button>
+      <button class="mode-card" data-mode="duel">
+        <h3>竞技对战</h3>
+        <p>开局三条敌方蛇，抢食物、卡路线，达到目标或清场获胜。</p>
+        <div class="meta" id="menu-duel-meta">最高分 0</div>
+        <span class="icon">战</span>
+      </button>
+      <button class="mode-card" data-mode="maze">
+        <h3>迷宫猎食</h3>
+        <p>大量障碍和成对传送门，路线规划比手速更重要。</p>
+        <div class="meta" id="menu-maze-meta">最高分 0</div>
+        <span class="icon">门</span>
+      </button>
+      <button class="mode-card" data-mode="rush">
+        <h3>极速风暴</h3>
+        <p>棋盘更宽、速度更快、食物更多，道具会决定这一局的节奏。</p>
+        <div class="meta" id="menu-rush-meta">最高分 0</div>
+        <span class="icon">疾</span>
+      </button>
     </div>
   </section>
 
@@ -148,28 +583,66 @@
     <div id="level-grid" class="level-grid"></div>
   </section>
 
+  <section id="screen-saves" class="screen">
+    <div class="topbar">
+      <button id="saves-back" class="btn small">← 返回</button>
+      <b>存档中心</b>
+      <span class="who" id="saves-owner">本地</span>
+    </div>
+    <div id="save-list" class="save-list"></div>
+  </section>
+
   <section id="screen-game" class="screen">
     <div class="hud">
-      <button id="g-back" class="btn small">≡ 菜单</button>
+      <button id="g-back" class="btn small">菜单</button>
       <div class="hud-stats">
-        <div><label id="hud-mode-label">关卡</label><span id="hud-mode">1</span></div>
+        <div><label id="hud-mode-label">模式</label><span id="hud-mode">-</span></div>
         <div><label>分数</label><span id="hud-score">0</span></div>
         <div id="hud-target-wrap"><label>目标</label><span id="hud-target">-</span></div>
+        <div id="hud-time-wrap"><label>时间</label><span id="hud-time">-</span></div>
         <div id="hud-best-wrap"><label>最佳</label><span id="hud-best">0</span></div>
+        <div><label>护盾</label><span id="hud-shield">0</span></div>
       </div>
-      <button id="g-pause" class="btn small">⏸</button>
+      <button id="g-save" class="btn small">存盘</button>
+      <button id="g-pause" class="btn small">暂停</button>
     </div>
-    <div class="game-wrap">
-      <canvas id="game"></canvas>
-      <div id="overlay" class="overlay hidden">
-        <div class="overlay-card">
-          <h2 id="ov-title"></h2>
-          <p id="ov-sub"></p>
-          <div id="ov-actions"></div>
+    <div class="game-layout">
+      <div class="game-column">
+        <div class="game-wrap">
+          <canvas id="game"></canvas>
+          <div id="overlay" class="overlay hidden">
+            <div class="overlay-card">
+              <h2 id="ov-title"></h2>
+              <p id="ov-sub"></p>
+              <div id="ov-actions"></div>
+            </div>
+          </div>
         </div>
       </div>
+      <aside class="side-panel">
+        <div class="compact-card">
+          <div class="inventory">
+            <div class="pill"><label>减速</label><b id="pill-slow">0</b></div>
+            <div class="pill"><label>磁力</label><b id="pill-magnet">0</b></div>
+            <div class="pill"><label>敌方</label><b id="pill-ai">0</b></div>
+            <div class="pill"><label>食物</label><b id="pill-food">0</b></div>
+          </div>
+        </div>
+        <div class="compact-card">
+          <div class="dpad" aria-label="方向控制">
+            <button class="up" data-dir="up" aria-label="上">▲</button>
+            <button class="left" data-dir="left" aria-label="左">◀</button>
+            <button class="center" id="pad-pause" aria-label="暂停">●</button>
+            <button class="right" data-dir="right" aria-label="右">▶</button>
+            <button class="down" data-dir="down" aria-label="下">▼</button>
+          </div>
+        </div>
+        <div class="row">
+          <button id="quick-save" class="btn primary">保存</button>
+          <button id="quick-load" class="btn ghost">读取</button>
+        </div>
+      </aside>
     </div>
-    <div class="hint">方向键 / WASD 移动 · 空格暂停 · 手机可滑动屏幕</div>
   </section>
 
 </div>
@@ -177,102 +650,217 @@
 (function(){
   'use strict';
 
-  /* ---------------- storage (safe even when sandboxed) ---------------- */
   const mem = {};
+  const SAVE_SLOTS = 3;
+  const $ = id => document.getElementById(id);
   const store = {
-    get(k){ try{ const v=localStorage.getItem(k); return v===null?(k in mem?mem[k]:null):v; }catch(e){ return k in mem?mem[k]:null; } },
-    set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} mem[k]=v; }
+    get(k){
+      try{
+        const v = localStorage.getItem(k);
+        return v === null ? (k in mem ? mem[k] : null) : v;
+      }catch(e){
+        return k in mem ? mem[k] : null;
+      }
+    },
+    set(k,v){
+      try{ localStorage.setItem(k,v); }catch(e){}
+      mem[k] = v;
+    }
   };
-  function hash(s){ let h=5381; for(let i=0;i<s.length;i++) h=(((h<<5)+h)^s.charCodeAt(i))>>>0; return h.toString(16); }
-  function loadAccounts(){
-    try{ const v=JSON.parse(store.get('snake.accounts')||'{}'); return (v && typeof v==='object' && !Array.isArray(v)) ? v : {}; }
-    catch(e){ return {}; }
+
+  const MODE_INFO = {
+    campaign:{title:'闯关', bestKey:null},
+    endless:{title:'无尽', bestKey:'endless'},
+    timed:{title:'限时', bestKey:'timed'},
+    duel:{title:'对战', bestKey:'duel'},
+    maze:{title:'迷宫', bestKey:'maze'},
+    rush:{title:'极速', bestKey:'rush'}
+  };
+  const AI_COLORS = [
+    {body:'#c8653b', head:'#e18658'},
+    {body:'#315d83', head:'#5f88ae'},
+    {body:'#7557a8', head:'#9879c8'},
+    {body:'#a94f72', head:'#c87998'}
+  ];
+  const FOOD = {
+    apple:{label:'苹果', points:1, color:'#bd4d42'},
+    gold:{label:'金果', points:3, color:'#b98428'},
+    shield:{label:'护盾', points:1, color:'#315d83'},
+    slow:{label:'沙漏', points:1, color:'#7557a8'},
+    magnet:{label:'磁石', points:1, color:'#2f7d63'}
+  };
+  const DIRS = [
+    {x:0,y:-1,name:'up'},
+    {x:0,y:1,name:'down'},
+    {x:-1,y:0,name:'left'},
+    {x:1,y:0,name:'right'}
+  ];
+  const DIR_MAP = {
+    up:{x:0,y:-1},
+    down:{x:0,y:1},
+    left:{x:-1,y:0},
+    right:{x:1,y:0}
+  };
+
+  function hash(s){
+    let h = 5381;
+    for(let i=0;i<s.length;i++) h = (((h << 5) + h) ^ s.charCodeAt(i)) >>> 0;
+    return h.toString(16);
   }
-  function saveAccounts(){ store.set('snake.accounts', JSON.stringify(accounts)); }
-  function freshProgress(){ return { unlocked:1, done:{}, endlessBest:0 }; }
+  function clone(v){ return JSON.parse(JSON.stringify(v)); }
+  function clamp(n,a,b){ return Math.max(a, Math.min(b, n)); }
+  function formatTime(ms){
+    const total = Math.max(0, Math.ceil(ms / 1000));
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    return m + ':' + String(s).padStart(2,'0');
+  }
+  function formatSavedAt(ts){
+    if(!ts) return '空槽位';
+    const d = new Date(ts);
+    return (d.getMonth()+1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  }
+  function loadAccounts(){
+    try{
+      const v = JSON.parse(store.get('snake.accounts') || '{}');
+      return v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+    }catch(e){
+      return {};
+    }
+  }
+  function freshProgress(){
+    return {
+      unlocked:1,
+      done:{},
+      best:{endless:0, timed:0, duel:0, maze:0, rush:0},
+      saves:[null,null,null],
+      totals:{plays:0, apples:0}
+    };
+  }
   function normalizeProgress(p){
-    const np = Object.assign(freshProgress(), p||{});
-    if(!np.done || typeof np.done!=='object' || Array.isArray(np.done)) np.done={};
-    if(typeof np.unlocked!=='number' || np.unlocked<1) np.unlocked=1;
-    if(typeof np.endlessBest!=='number' || np.endlessBest<0) np.endlessBest=0;
+    const base = freshProgress();
+    const np = Object.assign(base, p || {});
+    if(!np.done || typeof np.done !== 'object' || Array.isArray(np.done)) np.done = {};
+    if(typeof np.unlocked !== 'number' || np.unlocked < 1) np.unlocked = 1;
+    np.unlocked = clamp(Math.floor(np.unlocked), 1, 100);
+    np.best = Object.assign(base.best, np.best || {});
+    if(typeof np.endlessBest === 'number') np.best.endless = Math.max(np.best.endless || 0, np.endlessBest);
+    Object.keys(base.best).forEach(k => {
+      if(typeof np.best[k] !== 'number' || np.best[k] < 0) np.best[k] = 0;
+    });
+    np.saves = Array.isArray(np.saves) ? np.saves.slice(0, SAVE_SLOTS) : [];
+    while(np.saves.length < SAVE_SLOTS) np.saves.push(null);
+    np.totals = Object.assign(base.totals, np.totals || {});
     return np;
   }
+  function saveAccounts(){ store.set('snake.accounts', JSON.stringify(accounts)); }
 
   let accounts = loadAccounts();
-  let user = null;            // { name, guest }
+  let user = null;
   let guestProgress = freshProgress();
   function progress(){ return user.guest ? guestProgress : accounts[user.name].progress; }
   function persist(){ if(!user.guest) saveAccounts(); }
 
-  /* ---------------- toast ---------------- */
   function toast(msg){
-    let t=document.getElementById('toast');
-    if(!t){ t=document.createElement('div'); t.id='toast'; t.className='toast'; document.body.appendChild(t); }
-    t.textContent=msg; t.classList.add('show');
-    clearTimeout(t._timer); t._timer=setTimeout(()=>t.classList.remove('show'),1600);
+    let t = $('toast');
+    if(!t){
+      t = document.createElement('div');
+      t.id = 'toast';
+      t.className = 'toast';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), 1700);
   }
 
-  /* ---------------- screen router ---------------- */
   const screens = {};
-  document.querySelectorAll('.screen').forEach(s=>screens[s.id]=s);
+  document.querySelectorAll('.screen').forEach(s => screens[s.id] = s);
   function show(id){
-    Object.values(screens).forEach(s=>s.classList.remove('active'));
+    Object.values(screens).forEach(s => s.classList.remove('active'));
     screens[id].classList.add('active');
     window.scrollTo(0,0);
   }
 
-  /* ---------------- auth UI ---------------- */
-  const $ = id=>document.getElementById(id);
   let authMode = 'login';
-  document.querySelectorAll('.tabs button').forEach(b=>{
-    b.onclick = ()=>{
+  document.querySelectorAll('.tabs button').forEach(b => {
+    b.onclick = () => {
       authMode = b.dataset.tab;
-      document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('active', x===b));
-      $('auth-submit').textContent = authMode==='login' ? '登录' : '注册';
+      document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('active', x === b));
+      $('auth-submit').textContent = authMode === 'login' ? '登录' : '注册';
       authMsg('');
     };
   });
-  function authMsg(t, ok){ const m=$('auth-msg'); m.textContent=t; m.classList.toggle('ok', !!ok); }
-
-  $('auth-submit').onclick = ()=>{
+  function authMsg(t, ok){
+    const m = $('auth-msg');
+    m.textContent = t;
+    m.classList.toggle('ok', !!ok);
+  }
+  $('auth-submit').onclick = () => {
     const name = $('auth-name').value.trim();
     const pass = $('auth-pass').value;
-    if(name.length<2) return authMsg('用户名至少 2 个字符');
-    if(pass.length<3) return authMsg('密码至少 3 个字符');
-    if(authMode==='register'){
+    if(name.length < 2) return authMsg('用户名至少 2 个字符');
+    if(pass.length < 3) return authMsg('密码至少 3 个字符');
+    if(authMode === 'register'){
       if(accounts[name]) return authMsg('该用户名已被注册');
-      accounts[name] = { pass:hash(pass), progress:freshProgress() };
+      accounts[name] = {pass:hash(pass), progress:freshProgress()};
       saveAccounts();
-      user = { name, guest:false };
+      user = {name, guest:false};
       enterMenu();
-    } else {
+    }else{
       const a = accounts[name];
       if(!a) return authMsg('用户不存在，请先注册');
       if(a.pass !== hash(pass)) return authMsg('密码错误');
       a.progress = normalizeProgress(a.progress);
-      user = { name, guest:false };
+      user = {name, guest:false};
       enterMenu();
     }
   };
-  $('auth-guest').onclick = ()=>{ user={ name:'游客', guest:true }; guestProgress=freshProgress(); enterMenu(); };
-  $('auth-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') $('auth-submit').click(); });
+  $('auth-guest').onclick = () => {
+    user = {name:'游客', guest:true};
+    guestProgress = freshProgress();
+    enterMenu();
+  };
+  $('auth-pass').addEventListener('keydown', e => {
+    if(e.key === 'Enter') $('auth-submit').click();
+  });
+  $('btn-logout').onclick = () => {
+    stopGame();
+    user = null;
+    $('auth-name').value = '';
+    $('auth-pass').value = '';
+    authMsg('');
+    show('screen-auth');
+  };
 
-  $('btn-logout').onclick = ()=>{ stopGame(); user=null; $('auth-name').value=''; $('auth-pass').value=''; authMsg(''); show('screen-auth'); };
-
-  /* ---------------- menu ---------------- */
   function enterMenu(){
     stopGame();
-    $('menu-user').textContent = user.name;
     const p = progress();
-    $('menu-campaign-meta').textContent = '进度 ' + Object.keys(p.done).length + ' / 100';
-    $('menu-endless-meta').textContent = '最高分 ' + p.endlessBest;
+    const cleared = Object.keys(p.done).length;
+    const saveCount = p.saves.filter(Boolean).length;
+    $('menu-user').textContent = user.name;
+    $('menu-campaign-meta').textContent = '进度 ' + cleared + ' / 100';
+    $('menu-endless-meta').textContent = '最高分 ' + p.best.endless;
+    $('menu-timed-meta').textContent = '最高分 ' + p.best.timed;
+    $('menu-duel-meta').textContent = '最高分 ' + p.best.duel;
+    $('menu-maze-meta').textContent = '最高分 ' + p.best.maze;
+    $('menu-rush-meta').textContent = '最高分 ' + p.best.rush;
+    $('stat-campaign').textContent = cleared + '/100';
+    $('stat-endless').textContent = p.best.endless;
+    $('stat-timed').textContent = p.best.timed;
+    $('stat-saves').textContent = saveCount + '/3';
     show('screen-menu');
   }
-  document.querySelectorAll('.mode-card').forEach(c=>{
-    c.onclick = ()=>{ if(c.dataset.mode==='campaign') enterLevels(); else startEndless(); };
+  document.querySelectorAll('.mode-card').forEach(card => {
+    card.onclick = () => {
+      const mode = card.dataset.mode;
+      if(mode === 'campaign') enterLevels();
+      else startMode(mode);
+    };
   });
+  $('btn-save-center').onclick = enterSaves;
 
-  /* ---------------- level select ---------------- */
   $('lv-back').onclick = enterMenu;
   function enterLevels(){
     const p = progress();
@@ -283,466 +871,1005 @@
       const cfg = levelConfig(n);
       const el = document.createElement('button');
       el.className = 'lv';
-      const unlocked = n <= p.unlocked;
-      if(!unlocked) el.classList.add('locked');
-      if(p.done[n]) el.classList.add('done');
       if(cfg.boss) el.classList.add('boss');
-      el.innerHTML = '<span>'+n+'</span><span class="tag">'+cfg.label+'</span>';
-      if(unlocked) el.onclick = ()=>startCampaign(n);
-      else el.onclick = ()=>{ toast('先通关第 ' + progress().unlocked + ' 关才能解锁这里'); el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); };
+      if(cfg.portals) el.classList.add('portal');
+      if(n > p.unlocked) el.classList.add('locked');
+      if(p.done[n]) el.classList.add('done');
+      el.innerHTML = '<span>' + n + '</span><span class="tag">' + cfg.label + '</span>';
+      if(n <= p.unlocked){
+        el.onclick = () => startCampaign(n);
+      }else{
+        el.onclick = () => {
+          toast('先通关第 ' + p.unlocked + ' 关');
+          el.classList.remove('shake');
+          void el.offsetWidth;
+          el.classList.add('shake');
+        };
+      }
       grid.appendChild(el);
     }
     show('screen-levels');
   }
 
-  /* ---------------- level design ---------------- */
-  function mulberry32(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
-
-  function levelConfig(n){
-    const cols=20, rows=20;
-    const boss = n % 10 === 0;
-    const wrap = n % 10 === 5;                       // every 5th-in-decade: pass-through walls
-    const target = Math.min(30, 3 + Math.ceil(n*0.35));
-    let ai = n>=8 ? 1 + Math.floor((n-8)/30) : 0;    // first rival at L8, up to 4
-    ai = Math.min(4, ai);
-    if(boss) ai = Math.min(4, ai+1);                 // boss levels add one extra rival
-    const obstacles = wrap ? 0 : Math.min(50, Math.floor(n*0.6));
-    const tickMs = Math.max(70, 140 - Math.floor(n*0.7));
-    let label = '基础';
-    if(wrap) label='穿墙';
-    else if(boss) label='BOSS';
-    else if(ai>0) label='对战';
-    else if(obstacles>0) label='障碍';
-    return { n, cols, rows, target, ai, obstacles, tickMs, wrap, boss, label };
+  $('saves-back').onclick = enterMenu;
+  function enterSaves(){
+    renderSaveList();
+    $('saves-owner').textContent = user.guest ? '游客会话' : user.name;
+    show('screen-saves');
+  }
+  function renderSaveList(){
+    const p = progress();
+    const list = $('save-list');
+    list.innerHTML = '';
+    p.saves.forEach((slot, idx) => {
+      const row = document.createElement('div');
+      row.className = 'save-row';
+      const title = slot ? ((MODE_INFO[slot.mode] && MODE_INFO[slot.mode].title) || slot.mode) + ' · ' + slot.score + ' 分' : '空槽位';
+      const meta = slot ? formatSavedAt(slot.savedAt) + ' · ' + slot.cols + 'x' + slot.rows : '可以在游戏内写入';
+      row.innerHTML = '<div><h3>槽位 ' + (idx+1) + ' · ' + title + '</h3><p>' + meta + '</p></div>';
+      const load = document.createElement('button');
+      load.className = 'btn accent';
+      load.textContent = '读取';
+      load.disabled = !slot;
+      load.onclick = () => slot && loadSavedGame(slot);
+      const clear = document.createElement('button');
+      clear.className = 'btn ghost';
+      clear.textContent = '清空';
+      clear.disabled = !slot;
+      clear.onclick = () => {
+        p.saves[idx] = null;
+        persist();
+        renderSaveList();
+        toast('槽位 ' + (idx+1) + ' 已清空');
+      };
+      row.appendChild(load);
+      row.appendChild(clear);
+      list.appendChild(row);
+    });
   }
 
-  /* ---------------- game engine ---------------- */
+  function mulberry32(seed){
+    return function(){
+      seed |= 0;
+      seed = seed + 0x6D2B79F5 | 0;
+      let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function levelConfig(n){
+    const boss = n % 10 === 0;
+    const wrap = n % 10 === 5;
+    const portals = n >= 14 && n % 7 === 0;
+    const target = Math.min(34, 3 + Math.ceil(n * 0.36));
+    let ai = n >= 8 ? 1 + Math.floor((n - 8) / 28) : 0;
+    ai = Math.min(4, ai + (boss ? 1 : 0));
+    const obstacles = wrap ? 0 : Math.min(58, Math.floor(n * 0.64) + (portals ? 6 : 0));
+    const tickMs = Math.max(66, 142 - Math.floor(n * 0.72));
+    let label = '基础';
+    if(wrap) label = '穿墙';
+    else if(boss) label = 'BOSS';
+    else if(portals) label = '传送';
+    else if(ai > 0) label = '对战';
+    else if(obstacles > 0) label = '障碍';
+    return {n, cols:20, rows:20, target, ai, obstacles, tickMs, wrap, boss, portals, label};
+  }
+
   const canvas = $('game');
   const ctx = canvas.getContext('2d');
-  const AI_COLORS = [
-    {body:'#ff8a3d', head:'#ffa866'},
-    {body:'#5b8cff', head:'#86a9ff'},
-    {body:'#c06bff', head:'#d49aff'},
-    {body:'#ff6bb5', head:'#ff9ccf'}
-  ];
-  const DIRS = [ {x:0,y:-1}, {x:0,y:1}, {x:-1,y:0}, {x:1,y:0} ];
-
-  let G = null;     // current game state
+  let G = null;
   let player = null;
   let rafId = 0;
+  let gameGen = 0;
 
-  function stopGame(){ if(G) G.running=false; if(rafId){ cancelAnimationFrame(rafId); rafId=0; } }
-
+  function stopGame(){
+    if(G) G.running = false;
+    if(rafId){
+      cancelAnimationFrame(rafId);
+      rafId = 0;
+    }
+  }
+  function makeSnake(cells, dir, isPlayer, colors){
+    return {
+      cells:clone(cells),
+      dir:{x:dir.x, y:dir.y},
+      nextDir:{x:dir.x, y:dir.y},
+      alive:true,
+      ai:!isPlayer,
+      score:0,
+      colors
+    };
+  }
   function newGame(opts){
     stopGame();
-
+    const p = progress();
+    p.totals.plays++;
+    persist();
     G = {
-      mode:opts.mode, cols:opts.cols, rows:opts.rows, cell:0, w:0, h:0,
-      wrap:!!opts.wrap, target:opts.target||0, level:opts.level||0,
-      obstacles:new Set(), food:[], snakes:[],
-      tickMs:opts.tickMs, baseTick:opts.tickMs,
-      running:true, paused:false, over:false, gen:(G?G.gen+1:1),
-      best:opts.best||0, foodCount:opts.foodCount||1, aiCap:opts.aiCap||0
+      mode:opts.mode,
+      modeTitle:opts.modeTitle || (MODE_INFO[opts.mode] ? MODE_INFO[opts.mode].title : opts.mode),
+      cols:opts.cols,
+      rows:opts.rows,
+      cell:0,
+      w:0,
+      h:0,
+      wrap:!!opts.wrap,
+      target:opts.target || 0,
+      level:opts.level || 0,
+      obstacles:new Set(),
+      portals:[],
+      food:[],
+      snakes:[],
+      tickMs:opts.tickMs,
+      baseTick:opts.tickMs,
+      running:true,
+      paused:false,
+      over:false,
+      gen:++gameGen,
+      best:opts.best || 0,
+      foodCount:opts.foodCount || 1,
+      aiCap:opts.aiCap || 4,
+      aiSpawnScores:opts.aiSpawnScores || [],
+      stepCount:0,
+      timeLimit:opts.timeLimit || 0,
+      timeLeft:opts.timeLimit || 0,
+      slowTicks:0,
+      magnetTicks:0,
+      shields:opts.shields || 0,
+      seed:opts.seed || Math.floor(Math.random() * 900000)
     };
-
-    // obstacles (deterministic per level)
-    if(opts.obstacles){
-      const rng = mulberry32(9000 + (opts.level||1)*131);
-      const mid = Math.floor(opts.rows/2);
-      let placed=0, guard=0;
-      while(placed<opts.obstacles && guard++<2000){
-        const x=Math.floor(rng()*opts.cols), y=Math.floor(rng()*opts.rows);
-        if(Math.abs(y-mid)<=1 && x<8) continue;        // keep player's start lane clear
-        const k=x+','+y;
-        if(!G.obstacles.has(k)){ G.obstacles.add(k); placed++; }
-      }
-    }
-
-    // player snake
-    const sy = Math.floor(opts.rows/2);
-    player = makeSnake([{x:4,y:sy},{x:3,y:sy},{x:2,y:sy}], {x:1,y:0}, true, {body:'#3ddc84', head:'#7af0ab'});
+    const sy = Math.floor(G.rows / 2);
+    player = makeSnake([{x:4,y:sy},{x:3,y:sy},{x:2,y:sy}], {x:1,y:0}, true, {body:'#2f7d63', head:'#54a884'});
     G.snakes.push(player);
-
-    // initial AI snakes
-    for(let i=0;i<(opts.ai||0);i++) spawnAISnake();
-
+    placeObstacles(opts.obstacles || 0, opts.seed || (7000 + (opts.level || 1) * 167));
+    if(opts.portals) placePortals();
+    for(let i=0;i<(opts.ai || 0);i++) spawnAISnake();
     spawnFood(G.foodCount);
+    show('screen-game');
     layoutCanvas();
     syncHud();
     hideOverlay();
     loop();
   }
-
-  function makeSnake(cells, dir, isPlayer, colors){
-    return { cells, dir, nextDir:dir, alive:true, ai:!isPlayer, score:0, colors };
+  function startCampaign(n){
+    const cfg = levelConfig(n);
+    newGame({
+      mode:'campaign',
+      modeTitle:'第 ' + n + ' 关',
+      level:n,
+      cols:cfg.cols,
+      rows:cfg.rows,
+      wrap:cfg.wrap,
+      target:cfg.target,
+      obstacles:cfg.obstacles,
+      portals:cfg.portals,
+      ai:cfg.ai,
+      tickMs:cfg.tickMs,
+      foodCount:cfg.boss ? 2 : 1,
+      seed:9000 + n * 131,
+      shields:cfg.boss ? 1 : 0
+    });
+  }
+  function startMode(mode){
+    const p = progress();
+    const cfgs = {
+      endless:{mode:'endless', cols:24, rows:24, wrap:false, target:0, obstacles:10, portals:false, ai:0, tickMs:136, foodCount:3, best:p.best.endless, aiSpawnScores:[5,12,20,30,44]},
+      timed:{mode:'timed', cols:22, rows:22, wrap:true, target:0, obstacles:8, portals:false, ai:1, tickMs:118, foodCount:5, best:p.best.timed, timeLimit:90000, shields:1},
+      duel:{mode:'duel', cols:22, rows:22, wrap:false, target:18, obstacles:20, portals:false, ai:3, tickMs:122, foodCount:2, best:p.best.duel, shields:1},
+      maze:{mode:'maze', cols:20, rows:20, wrap:false, target:22, obstacles:70, portals:true, ai:1, tickMs:128, foodCount:2, best:p.best.maze, shields:1},
+      rush:{mode:'rush', cols:26, rows:20, wrap:false, target:30, obstacles:16, portals:true, ai:2, tickMs:94, foodCount:5, best:p.best.rush, aiSpawnScores:[8,18,28], shields:2}
+    };
+    const cfg = cfgs[mode];
+    cfg.modeTitle = MODE_INFO[mode].title;
+    cfg.aiCap = mode === 'duel' ? 3 : 4;
+    newGame(cfg);
   }
 
-  function occupied(){
+  function placeObstacles(count, seed){
+    const rng = mulberry32(seed);
+    const safe = [
+      {x:4, y:Math.floor(G.rows/2), r:4},
+      {x:3, y:Math.floor(G.rows/2), r:4},
+      {x:2, y:Math.floor(G.rows/2), r:4}
+    ];
+    let placed = 0;
+    let guard = 0;
+    while(placed < count && guard++ < 6000){
+      const x = Math.floor(rng() * G.cols);
+      const y = Math.floor(rng() * G.rows);
+      if(safe.some(s => Math.abs(s.x - x) + Math.abs(s.y - y) <= s.r)) continue;
+      const k = x + ',' + y;
+      if(!G.obstacles.has(k)){
+        G.obstacles.add(k);
+        placed++;
+      }
+    }
+  }
+  function placePortals(){
+    const candidates = [
+      {x:2, y:2}, {x:G.cols-3, y:G.rows-3},
+      {x:G.cols-4, y:3}, {x:3, y:G.rows-4}
+    ].filter(c => inBounds(c.x,c.y) && !G.obstacles.has(c.x + ',' + c.y));
+    if(candidates.length >= 2) G.portals = [candidates[0], candidates[1]];
+  }
+  function occupied(includeFood, includePortals){
     const set = new Set(G.obstacles);
-    for(const s of G.snakes) if(s.alive) for(const c of s.cells) set.add(c.x+','+c.y);
-    for(const f of G.food) set.add(f.x+','+f.y);
+    if(includePortals) G.portals.forEach(p => set.add(p.x + ',' + p.y));
+    for(const s of G.snakes){
+      if(!s.alive) continue;
+      for(const c of s.cells) set.add(c.x + ',' + c.y);
+    }
+    if(includeFood !== false) for(const f of G.food) set.add(f.x + ',' + f.y);
     return set;
   }
-  function freeCells(){
-    const occ = occupied();
-    const list=[];
-    for(let y=0;y<G.rows;y++) for(let x=0;x<G.cols;x++){ if(!occ.has(x+','+y)) list.push({x,y}); }
+  function freeCells(includeFood, includePortals){
+    const occ = occupied(includeFood, includePortals);
+    const list = [];
+    for(let y=0;y<G.rows;y++){
+      for(let x=0;x<G.cols;x++){
+        if(!occ.has(x + ',' + y)) list.push({x,y});
+      }
+    }
     return list;
+  }
+  function pickFoodType(){
+    const r = Math.random();
+    if(G.mode === 'timed'){
+      if(r < .18) return 'gold';
+      if(r < .29) return 'magnet';
+      if(r < .39) return 'slow';
+      if(r < .46) return 'shield';
+      return 'apple';
+    }
+    if(G.mode === 'rush'){
+      if(r < .14) return 'gold';
+      if(r < .24) return 'slow';
+      if(r < .34) return 'magnet';
+      if(r < .42) return 'shield';
+      return 'apple';
+    }
+    if(player && player.score > 6 && r < .08) return 'shield';
+    if(player && player.score > 8 && r < .16) return 'slow';
+    if(player && player.score > 10 && r < .22) return 'magnet';
+    if(player && player.score > 12 && r < .28) return 'gold';
+    return 'apple';
   }
   function spawnFood(count){
     for(let i=0;i<count;i++){
-      const cells = freeCells();
+      const cells = freeCells(true, true);
       if(!cells.length) return;
-      G.food.push(cells[Math.floor(Math.random()*cells.length)]);
+      const c = cells[Math.floor(Math.random() * cells.length)];
+      G.food.push({x:c.x, y:c.y, type:pickFoodType()});
     }
   }
   function spawnAISnake(){
-    if(G.snakes.filter(s=>s.ai&&s.alive).length >= 4) return;
-    const cells = freeCells();
-    if(cells.length<12) return;
-    const free = new Set(cells.map(c=>c.x+','+c.y));
-    const spot = cells[Math.floor(Math.random()*cells.length)];
-    // build a 3-cell body extending opposite to a direction that has room
-    let body=null, dir=null;
+    if(G.snakes.filter(s => s.ai && s.alive).length >= G.aiCap) return;
+    const cells = freeCells(true, true);
+    if(cells.length < 10) return;
+    const free = new Set(cells.map(c => c.x + ',' + c.y));
+    const spot = cells[Math.floor(Math.random() * cells.length)];
+    let body = null;
+    let dir = null;
     for(const d of DIRS){
-      const cand=[{x:spot.x,y:spot.y}];
-      let ok=true;
+      const cand = [{x:spot.x, y:spot.y}];
+      let ok = true;
       for(let i=1;i<3;i++){
-        const x=spot.x-d.x*i, y=spot.y-d.y*i;
-        if(!inBounds(x,y) || !free.has(x+','+y)){ ok=false; break; }
+        const x = spot.x - d.x * i;
+        const y = spot.y - d.y * i;
+        if(!inBounds(x,y) || !free.has(x + ',' + y)){ ok = false; break; }
         cand.push({x,y});
       }
-      if(ok){ body=cand; dir=d; break; }
+      if(ok){ body = cand; dir = d; break; }
     }
-    if(!body){ body=[{x:spot.x,y:spot.y}]; dir={x:0,y:1}; }
-    const idx = G.snakes.filter(s=>s.ai).length % AI_COLORS.length;
+    if(!body){ body = [{x:spot.x, y:spot.y}]; dir = {x:0,y:1}; }
+    const idx = G.snakes.filter(s => s.ai).length % AI_COLORS.length;
     G.snakes.push(makeSnake(body, dir, false, AI_COLORS[idx]));
   }
-
-  function inBounds(x,y){ return x>=0 && y>=0 && x<G.cols && y<G.rows; }
-  function isObstacle(x,y){ return G.obstacles.has(x+','+y); }
-  function manhattan(ax,ay,bx,by){ return Math.abs(ax-bx)+Math.abs(ay-by); }
-
+  function inBounds(x,y){ return x >= 0 && y >= 0 && x < G.cols && y < G.rows; }
+  function isObstacle(x,y){ return G.obstacles.has(x + ',' + y); }
+  function manhattan(ax,ay,bx,by){ return Math.abs(ax-bx) + Math.abs(ay-by); }
+  function portalExit(x,y){
+    if(G.portals.length < 2) return null;
+    const a = G.portals[0], b = G.portals[1];
+    if(a.x === x && a.y === y) return {x:b.x, y:b.y};
+    if(b.x === x && b.y === y) return {x:a.x, y:a.y};
+    return null;
+  }
   function nearestFood(x,y){
-    let best=null, bd=1e9;
-    for(const f of G.food){ const d=manhattan(x,y,f.x,f.y); if(d<bd){ bd=d; best=f; } }
+    let best = null;
+    let bd = Infinity;
+    for(const f of G.food){
+      const d = manhattan(x,y,f.x,f.y);
+      if(d < bd){ bd = d; best = f; }
+    }
     return best;
   }
-
-  // cells blocked for AI planning: obstacles + snake bodies; a tail is free only if that snake can't grow this tick
   function planBlocked(){
     const set = new Set(G.obstacles);
     for(const s of G.snakes){
       if(!s.alive) continue;
       const head = s.cells[0];
-      const mightGrow = G.food.some(f=>Math.abs(f.x-head.x)+Math.abs(f.y-head.y)===1);
-      const limit = mightGrow ? s.cells.length : s.cells.length-1;
-      for(let i=0;i<limit;i++) set.add(s.cells[i].x+','+s.cells[i].y);
+      const mightGrow = G.food.some(f => manhattan(head.x,head.y,f.x,f.y) === 1);
+      const limit = mightGrow ? s.cells.length : s.cells.length - 1;
+      for(let i=0;i<limit;i++) set.add(s.cells[i].x + ',' + s.cells[i].y);
     }
     return set;
   }
   function floodFree(sx,sy,blocked){
-    const seen=new Set([sx+','+sy]);
-    const q=[[sx,sy]]; let qi=0, count=0; const cap=45;
-    while(qi<q.length && count<cap){
-      const cur=q[qi++]; const x=cur[0], y=cur[1]; count++;
+    const seen = new Set([sx + ',' + sy]);
+    const q = [[sx,sy]];
+    let qi = 0;
+    let count = 0;
+    const cap = 54;
+    while(qi < q.length && count < cap){
+      const cur = q[qi++];
+      const x = cur[0], y = cur[1];
+      count++;
       for(const d of DIRS){
-        let nx=x+d.x, ny=y+d.y;
-        if(G.wrap){ nx=(nx+G.cols)%G.cols; ny=(ny+G.rows)%G.rows; }
+        let nx = x + d.x, ny = y + d.y;
+        if(G.wrap){ nx = (nx + G.cols) % G.cols; ny = (ny + G.rows) % G.rows; }
         if(!G.wrap && !inBounds(nx,ny)) continue;
-        const k=nx+','+ny;
-        if(seen.has(k)||blocked.has(k)) continue;
-        seen.add(k); q.push([nx,ny]);
+        const exit = portalExit(nx,ny);
+        if(exit){ nx = exit.x; ny = exit.y; }
+        const k = nx + ',' + ny;
+        if(seen.has(k) || blocked.has(k)) continue;
+        seen.add(k);
+        q.push([nx,ny]);
       }
     }
     return count;
   }
   function aiDir(snake, blocked){
     const head = snake.cells[0];
-    const food = nearestFood(head.x,head.y);
-    let best=null, bestScore=-1e9;
+    const food = nearestFood(head.x, head.y);
+    let best = null;
+    let bestScore = -Infinity;
     for(const d of DIRS){
-      if(snake.cells.length>1 && d.x===-snake.dir.x && d.y===-snake.dir.y) continue;
-      let nx=head.x+d.x, ny=head.y+d.y;
-      if(G.wrap){ nx=(nx+G.cols)%G.cols; ny=(ny+G.rows)%G.rows; }
+      if(snake.cells.length > 1 && d.x === -snake.dir.x && d.y === -snake.dir.y) continue;
+      let nx = head.x + d.x, ny = head.y + d.y;
+      if(G.wrap){ nx = (nx + G.cols) % G.cols; ny = (ny + G.rows) % G.rows; }
       if(!G.wrap && !inBounds(nx,ny)) continue;
-      if(blocked.has(nx+','+ny)) continue;
+      const exit = portalExit(nx,ny);
+      if(exit){ nx = exit.x; ny = exit.y; }
+      if(blocked.has(nx + ',' + ny)) continue;
       const space = floodFree(nx,ny,blocked);
       const dist = food ? manhattan(nx,ny,food.x,food.y) : 0;
-      const score = space*3 - dist*2 + Math.random()*2;
-      if(score>bestScore){ bestScore=score; best=d; }
+      const score = space * 3 - dist * 2 + Math.random() * 2;
+      if(score > bestScore){ bestScore = score; best = d; }
     }
     return best || snake.dir;
   }
-
-  function step(){
-    // set directions
-    player.dir = player.nextDir;
-    if(G.snakes.some(s=>s.ai&&s.alive)){
-      const blocked = planBlocked();
-      for(const s of G.snakes) if(s.ai && s.alive) s.dir = aiDir(s, blocked);
+  function safeSnakeCells(){
+    const blocked = new Set(G.obstacles);
+    for(const s of G.snakes){
+      if(!s.alive || s === player) continue;
+      for(const c of s.cells) blocked.add(c.x + ',' + c.y);
     }
-
-    // compute moves
+    const options = [];
+    for(let y=1;y<G.rows-1;y++){
+      for(let x=3;x<G.cols-1;x++){
+        const body = [{x,y},{x:x-1,y},{x:x-2,y}];
+        if(body.every(c => !blocked.has(c.x + ',' + c.y))) options.push(body);
+      }
+    }
+    return options.length ? clone(options[Math.floor(Math.random() * options.length)]) : null;
+  }
+  function maybeMoveFoodWithMagnet(){
+    if(!G.magnetTicks || !G.food.length) return;
+    const head = player.cells[0];
+    const blocked = occupied(false, true);
+    for(const f of G.food){
+      if(manhattan(head.x,head.y,f.x,f.y) > 5) continue;
+      const dx = Math.sign(head.x - f.x);
+      const dy = Math.sign(head.y - f.y);
+      const steps = Math.abs(head.x - f.x) > Math.abs(head.y - f.y) ? [{x:dx,y:0},{x:0,y:dy}] : [{x:0,y:dy},{x:dx,y:0}];
+      for(const s of steps){
+        const nx = f.x + s.x, ny = f.y + s.y;
+        if(!inBounds(nx,ny)) continue;
+        const k = nx + ',' + ny;
+        if(!blocked.has(k)){
+          f.x = nx; f.y = ny;
+          break;
+        }
+      }
+    }
+  }
+  function step(){
+    G.stepCount++;
+    if(G.slowTicks > 0) G.slowTicks--;
+    if(G.magnetTicks > 0) G.magnetTicks--;
+    maybeMoveFoodWithMagnet();
+    player.dir = player.nextDir;
+    if(G.snakes.some(s => s.ai && s.alive)){
+      const blocked = planBlocked();
+      for(const s of G.snakes){
+        if(!s.ai || !s.alive) continue;
+        if(G.slowTicks > 0 && G.stepCount % 2 === 0) continue;
+        s.dir = aiDir(s, blocked);
+      }
+    }
     const moves = new Map();
     for(const s of G.snakes){
       if(!s.alive) continue;
-      let nx=s.cells[0].x+s.dir.x, ny=s.cells[0].y+s.dir.y;
-      if(G.wrap){ if(nx<0)nx=G.cols-1; else if(nx>=G.cols)nx=0; if(ny<0)ny=G.rows-1; else if(ny>=G.rows)ny=0; }
-      const willEat = G.food.some(f=>f.x===nx&&f.y===ny);
-      moves.set(s, { head:{x:nx,y:ny}, willEat });
+      let nx = s.cells[0].x + s.dir.x;
+      let ny = s.cells[0].y + s.dir.y;
+      if(G.wrap){
+        nx = (nx + G.cols) % G.cols;
+        ny = (ny + G.rows) % G.rows;
+      }
+      const exit = portalExit(nx,ny);
+      if(exit){ nx = exit.x; ny = exit.y; }
+      const willEat = G.food.some(f => f.x === nx && f.y === ny);
+      moves.set(s, {head:{x:nx,y:ny}, willEat});
     }
-
     const dead = new Set();
-    // walls / obstacles
     for(const s of G.snakes){
       if(!s.alive) continue;
-      const {head}=moves.get(s);
+      const head = moves.get(s).head;
       if((!G.wrap && !inBounds(head.x,head.y)) || isObstacle(head.x,head.y)) dead.add(s);
     }
-    // head-to-head (resolve before body so a fresh corpse's tail counts as solid)
-    const alive = G.snakes.filter(s=>s.alive);
-    for(let i=0;i<alive.length;i++) for(let j=i+1;j<alive.length;j++){
-      const a=moves.get(alive[i]).head, b=moves.get(alive[j]).head;
-      if(a.x===b.x && a.y===b.y){ dead.add(alive[i]); dead.add(alive[j]); }
+    const alive = G.snakes.filter(s => s.alive);
+    for(let i=0;i<alive.length;i++){
+      for(let j=i+1;j<alive.length;j++){
+        const a = moves.get(alive[i]).head;
+        const b = moves.get(alive[j]).head;
+        if(a.x === b.x && a.y === b.y){
+          dead.add(alive[i]);
+          dead.add(alive[j]);
+        }
+      }
     }
-    // body collisions: a snake's tail vacates only if it survives this tick AND is not growing
     for(const s of G.snakes){
       if(!s.alive || dead.has(s)) continue;
-      const {head}=moves.get(s);
-      let hit=false;
+      const head = moves.get(s).head;
+      let hit = false;
       for(const o of G.snakes){
         if(!o.alive) continue;
         const vacates = !moves.get(o).willEat && !dead.has(o);
-        const limit = vacates ? o.cells.length-1 : o.cells.length;
+        const limit = vacates ? o.cells.length - 1 : o.cells.length;
         for(let i=0;i<limit;i++){
-          if(o===s && i===0) continue;                          // own current head
-          if(o.cells[i].x===head.x && o.cells[i].y===head.y){ hit=true; break; }
+          if(o === s && i === 0) continue;
+          if(o.cells[i].x === head.x && o.cells[i].y === head.y){ hit = true; break; }
         }
         if(hit) break;
       }
       if(hit) dead.add(s);
     }
-
-    // apply survivors
+    if(dead.has(player) && G.shields > 0){
+      const safe = safeSnakeCells();
+      if(safe){
+        dead.delete(player);
+        G.shields--;
+        player.cells = safe;
+        player.dir = {x:1,y:0};
+        player.nextDir = {x:1,y:0};
+        moves.set(player, {head:player.cells[0], willEat:false, rescued:true});
+        toast('护盾抵消了一次撞击');
+      }
+    }
     for(const s of G.snakes){
       if(!s.alive || dead.has(s)) continue;
-      const {head, willEat}=moves.get(s);
-      s.cells.unshift(head);
-      if(willEat){
-        const fi = G.food.findIndex(f=>f.x===head.x&&f.y===head.y);
-        if(fi>=0) G.food.splice(fi,1);
-        s.score++;
+      const move = moves.get(s);
+      if(move.rescued) continue;
+      s.cells.unshift(move.head);
+      if(move.willEat){
+        const fi = G.food.findIndex(f => f.x === move.head.x && f.y === move.head.y);
+        const eaten = fi >= 0 ? G.food.splice(fi,1)[0] : {type:'apple'};
+        applyFood(s, eaten);
         spawnFood(1);
-        if(s===player) onPlayerAte();
-      } else {
+      }else{
         s.cells.pop();
       }
     }
-    for(const s of dead) s.alive=false;
-
-    if(!player.alive){ return gameOver(); }
-    if(G.mode==='campaign' && player.score>=G.target){ return victory(); }
-
-    // drop dead AI snakes from the board (keep player reference for game-over screen)
-    G.snakes = G.snakes.filter(s=> s===player || s.alive);
-
+    for(const s of dead) s.alive = false;
+    if(!player.alive) return gameOver('游戏结束', '本局得分 ' + player.score);
+    G.snakes = G.snakes.filter(s => s === player || s.alive);
+    if(checkWin()) return;
     syncHud();
   }
-
-  function onPlayerAte(){
-    if(G.mode==='endless'){
-      G.tickMs = Math.max(60, G.baseTick - player.score*2);
-      G.best = Math.max(G.best, player.score);
-      const p = progress();
-      if(player.score > p.endlessBest){ p.endlessBest = player.score; persist(); }   // persist the moment a record is set
-      if([5,12,20,30].includes(player.score)) spawnAISnake();
+  function applyFood(s, food){
+    const def = FOOD[food.type] || FOOD.apple;
+    s.score += def.points;
+    if(s !== player) return;
+    const p = progress();
+    p.totals.apples += def.points;
+    if(food.type === 'shield') G.shields++;
+    if(food.type === 'slow') G.slowTicks = Math.max(G.slowTicks, 90);
+    if(food.type === 'magnet') G.magnetTicks = Math.max(G.magnetTicks, 85);
+    if(G.mode === 'endless') G.tickMs = Math.max(58, G.baseTick - player.score * 2);
+    if(G.mode === 'rush') G.tickMs = Math.max(52, G.baseTick - Math.floor(player.score * 1.3));
+    if(G.aiSpawnScores.includes(player.score)) spawnAISnake();
+    updateBest(false);
+  }
+  function checkWin(){
+    if(G.mode === 'campaign' && player.score >= G.target) return victory();
+    if(G.mode === 'duel' && (player.score >= G.target || G.snakes.filter(s => s.ai && s.alive).length === 0)) return victory();
+    if((G.mode === 'maze' || G.mode === 'rush') && player.score >= G.target) return victory();
+    return false;
+  }
+  function updateBest(force){
+    const info = MODE_INFO[G.mode];
+    if(!info || !info.bestKey) return false;
+    const p = progress();
+    if(force || player.score > p.best[info.bestKey]){
+      p.best[info.bestKey] = Math.max(p.best[info.bestKey], player.score);
+      persist();
+      return true;
     }
+    return false;
   }
 
-  /* ---------------- render ---------------- */
-  function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
-
+  function rr(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
   function layoutCanvas(){
     if(!G) return;
-    const app = $('app');
-    const avail = Math.min(440, (app ? app.clientWidth : 440) - 38);   // fit the container, never overflow
-    const cell = Math.max(8, Math.floor(avail/G.cols));
-    G.cell = cell; G.w = cell*G.cols; G.h = cell*G.rows;
-    const dpr = window.devicePixelRatio||1;
-    canvas.style.width=G.w+'px'; canvas.style.height=G.h+'px';
-    canvas.width=G.w*dpr; canvas.height=G.h*dpr;
+    const holder = document.querySelector('.game-column');
+    const width = holder ? holder.clientWidth : 560;
+    const sideLimit = window.innerWidth < 780 ? 560 : 610;
+    const avail = Math.max(260, Math.min(sideLimit, width));
+    const cell = Math.max(9, Math.floor(avail / G.cols));
+    G.cell = cell;
+    G.w = cell * G.cols;
+    G.h = cell * G.rows;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.style.width = G.w + 'px';
+    canvas.style.height = G.h + 'px';
+    canvas.width = G.w * dpr;
+    canvas.height = G.h * dpr;
     ctx.setTransform(dpr,0,0,dpr,0,0);
     render();
   }
   window.addEventListener('resize', layoutCanvas);
-
   function render(t){
     if(!G || !G.cell) return;
-    const c=G.cell;
+    const c = G.cell;
     ctx.clearRect(0,0,G.w,G.h);
-    ctx.fillStyle='#0d111a'; ctx.fillRect(0,0,G.w,G.h);
-    ctx.strokeStyle='rgba(255,255,255,.03)'; ctx.lineWidth=1;
+    ctx.fillStyle = '#f7ead5';
+    ctx.fillRect(0,0,G.w,G.h);
+    ctx.strokeStyle = 'rgba(112,82,45,.12)';
+    ctx.lineWidth = 1;
     for(let x=1;x<G.cols;x++){ ctx.beginPath(); ctx.moveTo(x*c,0); ctx.lineTo(x*c,G.h); ctx.stroke(); }
     for(let y=1;y<G.rows;y++){ ctx.beginPath(); ctx.moveTo(0,y*c); ctx.lineTo(G.w,y*c); ctx.stroke(); }
-    // obstacles
-    ctx.fillStyle='#2b3346';
-    for(const k of G.obstacles){ const p=k.split(','); rr(p[0]*c+1,p[1]*c+1,c-2,c-2,3); ctx.fill(); }
-    // food (pulse)
-    const pulse = 0.5 + 0.5*Math.sin((t||0)/200);
-    for(const f of G.food){
-      const pad = 3 + pulse*1.5;
-      ctx.fillStyle='rgba(255,90,95,.25)';
-      ctx.beginPath(); ctx.arc(f.x*c+c/2, f.y*c+c/2, (c-2*pad)/2+2+pulse*2, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle='#ff5a5f';
-      ctx.beginPath(); ctx.arc(f.x*c+c/2, f.y*c+c/2, (c-2*pad)/2, 0, Math.PI*2); ctx.fill();
+
+    ctx.fillStyle = '#b59b71';
+    for(const k of G.obstacles){
+      const p = k.split(',');
+      rr(+p[0]*c+1, +p[1]*c+1, c-2, c-2, 4);
+      ctx.fill();
+      ctx.fillStyle = '#9e8156';
+      ctx.fillRect(+p[0]*c + c*.28, +p[1]*c + c*.28, c*.44, c*.14);
+      ctx.fillStyle = '#b59b71';
     }
-    // snakes
-    for(const s of G.snakes){
-      if(!s.alive && s!==player) continue;
-      for(let i=s.cells.length-1;i>=0;i--){
-        const cell=s.cells[i];
-        if(!s.alive) ctx.fillStyle = i===0 ? '#6b7280' : '#4b5563';
-        else ctx.fillStyle = i===0 ? s.colors.head : s.colors.body;
-        rr(cell.x*c+1, cell.y*c+1, c-2, c-2, i===0?5:4); ctx.fill();
+
+    if(G.portals.length === 2){
+      G.portals.forEach((p, i) => {
+        const x = p.x*c+c/2, y = p.y*c+c/2;
+        ctx.strokeStyle = i === 0 ? '#315d83' : '#7557a8';
+        ctx.lineWidth = Math.max(2, c*.12);
+        ctx.beginPath();
+        ctx.arc(x,y,c*.32,0,Math.PI*2);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(49,93,131,.25)';
+        ctx.beginPath();
+        ctx.arc(x,y,c*.18,0,Math.PI*2);
+        ctx.stroke();
+      });
+    }
+
+    const pulse = 0.5 + 0.5 * Math.sin((t || 0) / 210);
+    for(const f of G.food){
+      const def = FOOD[f.type] || FOOD.apple;
+      const cx = f.x*c+c/2, cy = f.y*c+c/2;
+      ctx.fillStyle = def.color;
+      if(f.type === 'shield'){
+        ctx.beginPath();
+        ctx.moveTo(cx, cy-c*.34);
+        ctx.lineTo(cx+c*.32, cy-c*.08);
+        ctx.lineTo(cx+c*.22, cy+c*.32);
+        ctx.lineTo(cx, cy+c*.42);
+        ctx.lineTo(cx-c*.22, cy+c*.32);
+        ctx.lineTo(cx-c*.32, cy-c*.08);
+        ctx.closePath();
+        ctx.fill();
+      }else if(f.type === 'gold'){
+        ctx.save();
+        ctx.translate(cx,cy);
+        ctx.rotate(Math.PI/4);
+        rr(-c*.24,-c*.24,c*.48,c*.48,3);
+        ctx.fill();
+        ctx.restore();
+      }else if(f.type === 'slow'){
+        ctx.beginPath();
+        ctx.arc(cx,cy,c*(.22 + pulse*.05),0,Math.PI*2);
+        ctx.fill();
+        ctx.strokeStyle = '#fffaf0';
+        ctx.beginPath();
+        ctx.moveTo(cx,cy-c*.16);
+        ctx.lineTo(cx,cy);
+        ctx.lineTo(cx+c*.12,cy+c*.1);
+        ctx.stroke();
+      }else if(f.type === 'magnet'){
+        ctx.lineWidth = Math.max(3, c*.16);
+        ctx.strokeStyle = def.color;
+        ctx.beginPath();
+        ctx.arc(cx,cy,c*.24,Math.PI*.15,Math.PI*.85,true);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+      }else{
+        ctx.beginPath();
+        ctx.arc(cx,cy,c*(.25 + pulse*.03),0,Math.PI*2);
+        ctx.fill();
       }
-      // eyes on head (living snakes only)
+    }
+
+    for(const s of G.snakes){
+      if(!s.alive && s !== player) continue;
+      for(let i=s.cells.length-1;i>=0;i--){
+        const cell = s.cells[i];
+        const color = !s.alive ? (i===0 ? '#7a7368' : '#9b907f') : (i===0 ? s.colors.head : s.colors.body);
+        ctx.fillStyle = color;
+        rr(cell.x*c+1, cell.y*c+1, c-2, c-2, i===0 ? 5 : 4);
+        ctx.fill();
+      }
       if(s.alive && s.cells.length){
-        const h=s.cells[0], d=s.dir;
-        ctx.fillStyle='#0b0e14';
-        const ex=h.x*c, ey=h.y*c;
-        const e1x=ex+c*0.5+d.x*c*0.18 - d.y*c*0.16, e1y=ey+c*0.5+d.y*c*0.18 - d.x*c*0.16;
-        const e2x=ex+c*0.5+d.x*c*0.18 + d.y*c*0.16, e2y=ey+c*0.5+d.y*c*0.18 + d.x*c*0.16;
-        const r=Math.max(1.4,c*0.07);
+        const h = s.cells[0], d = s.dir;
+        ctx.fillStyle = '#1f1b16';
+        const ex = h.x*c, ey = h.y*c;
+        const e1x = ex+c*.5+d.x*c*.18-d.y*c*.15;
+        const e1y = ey+c*.5+d.y*c*.18-d.x*c*.15;
+        const e2x = ex+c*.5+d.x*c*.18+d.y*c*.15;
+        const e2y = ey+c*.5+d.y*c*.18+d.x*c*.15;
+        const r = Math.max(1.3,c*.065);
         ctx.beginPath(); ctx.arc(e1x,e1y,r,0,Math.PI*2); ctx.fill();
         ctx.beginPath(); ctx.arc(e2x,e2y,r,0,Math.PI*2); ctx.fill();
       }
     }
   }
 
-  /* ---------------- loop ---------------- */
   function loop(){
     const myGen = G.gen;
-    let last=0, acc=0;
-    const frame = (t)=>{
-      if(!G || G.gen!==myGen || !G.running) return;
-      if(G.paused){ last=t; render(t); rafId=requestAnimationFrame(frame); return; }
-      if(!last) last=t;
-      acc += t-last; last=t;
-      if(acc > G.tickMs*4) acc = G.tickMs*4;          // clamp so a backgrounded tab doesn't burst-catch-up
-      let n=0;
-      while(acc>=G.tickMs && n<4){ step(); acc-=G.tickMs; n++; if(!G.running) break; }
+    let last = 0;
+    let acc = 0;
+    const frame = t => {
+      if(!G || G.gen !== myGen || !G.running) return;
+      if(!last) last = t;
+      const delta = t - last;
+      last = t;
+      if(G.paused){
+        render(t);
+        rafId = requestAnimationFrame(frame);
+        return;
+      }
+      if(G.timeLimit){
+        G.timeLeft -= delta;
+        if(G.timeLeft <= 0){
+          G.timeLeft = 0;
+          syncHud();
+          render(t);
+          return timeUp();
+        }
+      }
+      acc += delta;
+      const activeTick = G.slowTicks > 0 ? Math.floor(G.tickMs * 1.18) : G.tickMs;
+      if(acc > activeTick * 4) acc = activeTick * 4;
+      let n = 0;
+      while(acc >= activeTick && n < 4){
+        step();
+        acc -= activeTick;
+        n++;
+        if(!G.running) break;
+      }
+      syncHud();
       render(t);
-      if(G && G.running) rafId=requestAnimationFrame(frame);
+      if(G && G.running) rafId = requestAnimationFrame(frame);
     };
-    rafId=requestAnimationFrame(frame);
+    rafId = requestAnimationFrame(frame);
   }
 
-  /* ---------------- HUD + overlays ---------------- */
   function syncHud(){
-    const campaign = G.mode==='campaign';
-    $('hud-mode-label').textContent = campaign ? '关卡' : '模式';
-    $('hud-mode').textContent = campaign ? G.level : '无尽';
+    if(!G || !player) return;
+    $('hud-mode-label').textContent = G.mode === 'campaign' ? '关卡' : '模式';
+    $('hud-mode').textContent = G.modeTitle;
     $('hud-score').textContent = player.score;
-    $('hud-target-wrap').style.display = campaign ? '' : 'none';
-    $('hud-best-wrap').style.display = campaign ? 'none' : '';
-    $('hud-target').textContent = G.target;
+    $('hud-target-wrap').style.display = G.target ? '' : 'none';
+    $('hud-target').textContent = G.target || '-';
+    $('hud-time-wrap').style.display = G.timeLimit ? '' : 'none';
+    $('hud-time').textContent = G.timeLimit ? formatTime(G.timeLeft) : '-';
+    $('hud-best-wrap').style.display = G.mode === 'campaign' ? 'none' : '';
     $('hud-best').textContent = Math.max(G.best, player.score);
+    $('hud-shield').textContent = G.shields;
+    $('pill-slow').textContent = G.slowTicks ? Math.ceil(G.slowTicks / 10) : 0;
+    $('pill-magnet').textContent = G.magnetTicks ? Math.ceil(G.magnetTicks / 10) : 0;
+    $('pill-ai').textContent = G.snakes.filter(s => s.ai && s.alive).length;
+    $('pill-food').textContent = G.food.length;
   }
   function hideOverlay(){ $('overlay').classList.add('hidden'); }
   function showOverlay(title, sub, actions){
     $('ov-title').textContent = title;
-    $('ov-sub').textContent = sub;
-    const wrap=$('ov-actions'); wrap.innerHTML='';
-    actions.forEach(a=>{
-      const b=document.createElement('button');
-      b.className='btn '+(a.kind||'accent'); b.textContent=a.label; b.onclick=a.fn;
+    $('ov-sub').textContent = sub || '';
+    const wrap = $('ov-actions');
+    wrap.innerHTML = '';
+    actions.forEach(a => {
+      const b = document.createElement('button');
+      b.className = 'btn ' + (a.kind || 'accent');
+      b.textContent = a.label;
+      b.onclick = a.fn;
       wrap.appendChild(b);
     });
     $('overlay').classList.remove('hidden');
   }
-
-  function gameOver(){
-    G.running=false; G.over=true;
-    if(G.mode==='endless'){
-      const p=progress();
-      if(player.score>p.endlessBest){ p.endlessBest=player.score; persist(); }
-    }
+  function gameOver(title, sub){
+    G.running = false;
+    G.over = true;
+    updateBest(true);
     render();
-    showOverlay('游戏结束', '本局得分 '+player.score, [
-      { label:'再来一局', kind:'primary', fn:()=> G.mode==='campaign'? startCampaign(G.level) : startEndless() },
-      { label:'返回菜单', kind:'ghost', fn:enterMenu }
+    showOverlay(title, sub, [
+      {label:'再来一局', kind:'primary', fn:() => restartCurrent()},
+      {label:'返回菜单', kind:'ghost', fn:enterMenu}
+    ]);
+  }
+  function timeUp(){
+    G.running = false;
+    G.over = true;
+    updateBest(true);
+    render();
+    showOverlay('时间到', '本局得分 ' + player.score, [
+      {label:'再冲一次', kind:'primary', fn:() => startMode('timed')},
+      {label:'返回菜单', kind:'ghost', fn:enterMenu}
     ]);
   }
   function victory(){
-    G.running=false; G.over=true;
-    const p=progress();
-    p.done[G.level]=true;
-    if(G.level+1>p.unlocked && G.level<100) p.unlocked=G.level+1;
-    persist();
+    G.running = false;
+    G.over = true;
+    if(G.mode === 'campaign'){
+      const p = progress();
+      p.done[G.level] = true;
+      if(G.level < 100 && G.level + 1 > p.unlocked) p.unlocked = G.level + 1;
+      persist();
+      const isLast = G.level >= 100;
+      const actions = [];
+      if(!isLast) actions.push({label:'下一关', kind:'primary', fn:() => startCampaign(G.level + 1)});
+      actions.push({label:'返回选关', kind:isLast ? 'primary' : 'ghost', fn:enterLevels});
+      render();
+      return showOverlay(isLast ? '全部通关' : '过关', '第 ' + G.level + ' 关完成 · 得分 ' + player.score, actions);
+    }
+    updateBest(true);
     render();
-    const isLast = G.level>=100;
-    const actions=[];
-    if(!isLast) actions.push({ label:'下一关 →', kind:'primary', fn:()=>startCampaign(G.level+1) });
-    actions.push({ label:'返回选关', kind: isLast?'primary':'ghost', fn:enterLevels });
-    showOverlay(isLast?'🏆 全部通关！':'过关！', isLast?'你击败了全部 100 关':'第 '+G.level+' 关完成 · 得分 '+player.score, actions);
+    showOverlay('挑战完成', '本局得分 ' + player.score, [
+      {label:'再来一局', kind:'primary', fn:() => restartCurrent()},
+      {label:'返回菜单', kind:'ghost', fn:enterMenu}
+    ]);
+  }
+  function restartCurrent(){
+    if(!G) return enterMenu();
+    if(G.mode === 'campaign') startCampaign(G.level);
+    else startMode(G.mode);
   }
 
-  /* ---------------- start modes ---------------- */
-  function startCampaign(n){
-    const cfg = levelConfig(n);
-    show('screen-game');
-    newGame({ mode:'campaign', level:n, cols:cfg.cols, rows:cfg.rows, wrap:cfg.wrap,
-      target:cfg.target, obstacles:cfg.obstacles, ai:cfg.ai, tickMs:cfg.tickMs, foodCount:1 });
-  }
-  function startEndless(){
-    show('screen-game');
-    const p=progress();
-    newGame({ mode:'endless', cols:24, rows:24, wrap:false, target:0, obstacles:0,
-      ai:0, tickMs:140, foodCount:3, best:p.endlessBest, aiCap:3 });
-  }
-
-  /* ---------------- game screen controls ---------------- */
-  $('g-back').onclick = enterMenu;
-  $('g-pause').onclick = togglePause;
   function togglePause(){
-    if(!G || G.over || (!G.running && !G.paused)) return;
-    G.paused=!G.paused;
-    if(G.paused) showOverlay('已暂停','', [{label:'继续', kind:'primary', fn:togglePause}]);
-    else hideOverlay();
+    if(!G || G.over) return;
+    G.paused = !G.paused;
+    if(G.paused){
+      showOverlay('已暂停', '', [
+        {label:'继续', kind:'primary', fn:togglePause},
+        {label:'存盘', kind:'accent', fn:openSaveOverlay},
+        {label:'返回菜单', kind:'ghost', fn:enterMenu}
+      ]);
+    }else{
+      hideOverlay();
+    }
+  }
+  $('g-pause').onclick = togglePause;
+  $('pad-pause').onclick = togglePause;
+  $('g-back').onclick = () => {
+    if(!G || G.over) return enterMenu();
+    G.paused = true;
+    showOverlay('离开本局', '', [
+      {label:'先存盘', kind:'primary', fn:openSaveOverlay},
+      {label:'直接返回', kind:'ghost', fn:enterMenu},
+      {label:'继续游戏', kind:'accent', fn:togglePause}
+    ]);
+  };
+  $('g-save').onclick = openSaveOverlay;
+  $('quick-save').onclick = openSaveOverlay;
+  $('quick-load').onclick = openLoadOverlay;
+
+  function snapshotGame(){
+    if(!G || G.over) return null;
+    return {
+      version:2,
+      savedAt:Date.now(),
+      mode:G.mode,
+      modeTitle:G.modeTitle,
+      cols:G.cols,
+      rows:G.rows,
+      wrap:G.wrap,
+      target:G.target,
+      level:G.level,
+      obstacles:Array.from(G.obstacles),
+      portals:clone(G.portals),
+      food:clone(G.food),
+      snakes:clone(G.snakes),
+      playerIndex:G.snakes.indexOf(player),
+      tickMs:G.tickMs,
+      baseTick:G.baseTick,
+      foodCount:G.foodCount,
+      aiCap:G.aiCap,
+      aiSpawnScores:clone(G.aiSpawnScores),
+      best:G.best,
+      timeLimit:G.timeLimit,
+      timeLeft:G.timeLeft,
+      slowTicks:G.slowTicks,
+      magnetTicks:G.magnetTicks,
+      shields:G.shields,
+      stepCount:G.stepCount,
+      score:player.score
+    };
+  }
+  function saveGameToSlot(idx){
+    const snap = snapshotGame();
+    if(!snap) return toast('当前状态不能存盘');
+    const p = progress();
+    p.saves[idx] = snap;
+    persist();
+    toast((user.guest ? '游客临时' : '本地') + '存盘已写入槽位 ' + (idx+1));
+    openSaveOverlay();
+  }
+  function loadSavedGame(slot){
+    if(!slot) return;
+    stopGame();
+    G = {
+      mode:slot.mode,
+      modeTitle:slot.modeTitle || (MODE_INFO[slot.mode] ? MODE_INFO[slot.mode].title : slot.mode),
+      cols:slot.cols,
+      rows:slot.rows,
+      cell:0,
+      w:0,
+      h:0,
+      wrap:!!slot.wrap,
+      target:slot.target || 0,
+      level:slot.level || 0,
+      obstacles:new Set(slot.obstacles || []),
+      portals:clone(slot.portals || []),
+      food:clone(slot.food || []),
+      snakes:clone(slot.snakes || []),
+      tickMs:slot.tickMs,
+      baseTick:slot.baseTick || slot.tickMs,
+      running:true,
+      paused:false,
+      over:false,
+      gen:++gameGen,
+      best:slot.best || 0,
+      foodCount:slot.foodCount || 1,
+      aiCap:slot.aiCap || 4,
+      aiSpawnScores:clone(slot.aiSpawnScores || []),
+      stepCount:slot.stepCount || 0,
+      timeLimit:slot.timeLimit || 0,
+      timeLeft:slot.timeLeft || 0,
+      slowTicks:slot.slowTicks || 0,
+      magnetTicks:slot.magnetTicks || 0,
+      shields:slot.shields || 0
+    };
+    player = G.snakes[slot.playerIndex || 0] || G.snakes[0];
+    if(!player){
+      toast('这个存档损坏了');
+      return enterMenu();
+    }
+    show('screen-game');
+    layoutCanvas();
+    syncHud();
+    hideOverlay();
+    loop();
+    toast('已读取存档');
+  }
+  function openSaveOverlay(){
+    if(!G || G.over) return toast('当前没有可保存的游戏');
+    G.paused = true;
+    const wrap = $('ov-actions');
+    $('ov-title').textContent = '存盘';
+    $('ov-sub').textContent = '选择一个槽位写入当前局面';
+    wrap.innerHTML = '';
+    progress().saves.forEach((slot, idx) => {
+      const b = document.createElement('button');
+      b.className = 'btn ' + (slot ? 'gold' : 'primary');
+      b.textContent = '槽位 ' + (idx+1) + ' · ' + (slot ? formatSavedAt(slot.savedAt) : '空');
+      b.onclick = () => saveGameToSlot(idx);
+      wrap.appendChild(b);
+    });
+    const load = document.createElement('button');
+    load.className = 'btn accent';
+    load.textContent = '读取存档';
+    load.onclick = openLoadOverlay;
+    wrap.appendChild(load);
+    const close = document.createElement('button');
+    close.className = 'btn ghost';
+    close.textContent = '继续游戏';
+    close.onclick = () => { G.paused = false; hideOverlay(); };
+    wrap.appendChild(close);
+    $('overlay').classList.remove('hidden');
+  }
+  function openLoadOverlay(){
+    const saves = progress().saves;
+    if(!saves.some(Boolean)) return toast('还没有存档');
+    if(G && !G.over) G.paused = true;
+    const wrap = $('ov-actions');
+    $('ov-title').textContent = '读档';
+    $('ov-sub').textContent = '读取会覆盖当前局面';
+    wrap.innerHTML = '';
+    saves.forEach((slot, idx) => {
+      if(!slot) return;
+      const b = document.createElement('button');
+      b.className = 'btn accent';
+      b.textContent = '槽位 ' + (idx+1) + ' · ' + ((MODE_INFO[slot.mode] && MODE_INFO[slot.mode].title) || slot.mode) + ' · ' + slot.score + ' 分';
+      b.onclick = () => loadSavedGame(slot);
+      wrap.appendChild(b);
+    });
+    const close = document.createElement('button');
+    close.className = 'btn ghost';
+    close.textContent = G && !G.over ? '继续游戏' : '返回';
+    close.onclick = () => { if(G && !G.over){ G.paused = false; hideOverlay(); }else enterMenu(); };
+    wrap.appendChild(close);
+    $('overlay').classList.remove('hidden');
   }
 
-  /* ---------------- input ---------------- */
   function setDir(dx,dy){
-    if(!G || G.paused || G.over) return;
-    const d=player.dir;
-    if(player.cells.length>1 && dx===-d.x && dy===-d.y) return;
-    player.nextDir={x:dx,y:dy};
+    if(!G || G.paused || G.over || !player || !player.alive) return;
+    const d = player.dir;
+    if(player.cells.length > 1 && dx === -d.x && dy === -d.y) return;
+    player.nextDir = {x:dx, y:dy};
   }
-  window.addEventListener('keydown', e=>{
-    const k=e.key.toLowerCase();
-    if(k==='arrowup'||k==='w'){ setDir(0,-1); e.preventDefault(); }
-    else if(k==='arrowdown'||k==='s'){ setDir(0,1); e.preventDefault(); }
-    else if(k==='arrowleft'||k==='a'){ setDir(-1,0); e.preventDefault(); }
-    else if(k==='arrowright'||k==='d'){ setDir(1,0); e.preventDefault(); }
-    else if(k===' '){ togglePause(); e.preventDefault(); }
+  function dirByName(name){
+    const d = DIR_MAP[name];
+    if(d) setDir(d.x, d.y);
+  }
+  window.addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    if(k === 'arrowup' || k === 'w'){ setDir(0,-1); e.preventDefault(); }
+    else if(k === 'arrowdown' || k === 's'){ setDir(0,1); e.preventDefault(); }
+    else if(k === 'arrowleft' || k === 'a'){ setDir(-1,0); e.preventDefault(); }
+    else if(k === 'arrowright' || k === 'd'){ setDir(1,0); e.preventDefault(); }
+    else if(k === ' '){ togglePause(); e.preventDefault(); }
   });
-  // auto-pause when the tab is hidden
-  document.addEventListener('visibilitychange', ()=>{
+  document.querySelectorAll('[data-dir]').forEach(b => {
+    b.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      dirByName(b.dataset.dir);
+    });
+    b.addEventListener('click', e => {
+      e.preventDefault();
+      dirByName(b.dataset.dir);
+    });
+  });
+  document.addEventListener('visibilitychange', () => {
     if(document.hidden && G && G.running && !G.paused && !G.over) togglePause();
   });
-  // touch swipe
-  let tx=0,ty=0;
-  canvas.addEventListener('touchstart', e=>{ const t=e.touches[0]; tx=t.clientX; ty=t.clientY; }, {passive:true});
-  canvas.addEventListener('touchmove', e=>{
-    if(!tx&&!ty) return; const t=e.touches[0];
-    const dx=t.clientX-tx, dy=t.clientY-ty;
-    if(Math.abs(dx)<20 && Math.abs(dy)<20) return;
-    if(Math.abs(dx)>Math.abs(dy)) setDir(dx>0?1:-1,0); else setDir(0,dy>0?1:-1);
-    tx=t.clientX; ty=t.clientY; e.preventDefault();
+  let tx = 0, ty = 0;
+  canvas.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    tx = t.clientX;
+    ty = t.clientY;
+  }, {passive:true});
+  canvas.addEventListener('touchmove', e => {
+    if(!tx && !ty) return;
+    const t = e.touches[0];
+    const dx = t.clientX - tx;
+    const dy = t.clientY - ty;
+    if(Math.abs(dx) < 18 && Math.abs(dy) < 18) return;
+    if(Math.abs(dx) > Math.abs(dy)) setDir(dx > 0 ? 1 : -1, 0);
+    else setDir(0, dy > 0 ? 1 : -1);
+    tx = t.clientX;
+    ty = t.clientY;
+    e.preventDefault();
   }, {passive:false});
 
-  // boot
   show('screen-auth');
 })();
 </script>
