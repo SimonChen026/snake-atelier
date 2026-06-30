@@ -22,7 +22,13 @@ open index.html
 4. 不要勾选 `Keep this code private`
 5. 点 `Publish repository`
 
-发布后 GitHub Actions 会自动部署 GitHub Pages。网址通常是：
+发布后进入仓库网页，打开 `Settings` -> `Pages`，把发布方式设为：
+
+- Source: `Deploy from a branch`
+- Branch: `main`
+- Folder: `/ (root)`
+
+点 `Save` 后等待 1-3 分钟。网址通常是：
 
 ```text
 https://你的用户名.github.io/仓库名/
@@ -38,4 +44,4 @@ https://SimonChen026.github.io/snake-atelier/
 
 也可以打开 `https://app.netlify.com/drop`，把这个文件夹拖进去，等它生成网址。
 
-也可以发布到 GitHub Pages、Vercel 或任何静态网站托管服务。只要服务能识别根目录的 `index.html`，就能直接打开游戏。
+也可以发布到 Vercel、Netlify 或任何静态网站托管服务。只要服务能识别根目录的 `index.html`，就能直接打开游戏。
