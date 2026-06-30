@@ -14,10 +14,28 @@ open index.html
 
 ## 变成任何人都能点开的链接
 
-最快方式是 Netlify Drop：
+### GitHub Desktop 发布
 
-1. 打开 `https://app.netlify.com/drop`
-2. 把这个文件夹拖进去
-3. 等它生成网址，把网址发给朋友
+1. 用 GitHub Desktop 打开这个文件夹
+2. 点 `Publish repository`
+3. 仓库名可用 `snake-atelier`
+4. 不要勾选 `Keep this code private`
+5. 点 `Publish repository`
+
+发布后 GitHub Actions 会自动部署 GitHub Pages。网址通常是：
+
+```text
+https://你的用户名.github.io/仓库名/
+```
+
+例如：
+
+```text
+https://SimonChen026.github.io/snake-atelier/
+```
+
+### Netlify Drop
+
+也可以打开 `https://app.netlify.com/drop`，把这个文件夹拖进去，等它生成网址。
 
 也可以发布到 GitHub Pages、Vercel 或任何静态网站托管服务。只要服务能识别根目录的 `index.html`，就能直接打开游戏。
