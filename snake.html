@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>贪吃蛇 Arena</title>
+<style>
+  :root{
+    --bg:#0b0e14; --bg2:#10141d; --panel:#161b27; --panel2:#1d2330;
+    --line:#252c3b; --text:#e7ecf3; --muted:#8a93a6; --faint:#5c6479;
+    --green:#3ddc84; --green2:#28b866; --accent:#5b8cff; --accent2:#3a6ff0;
+    --red:#ff5a5f; --gold:#ffcf4d; --radius:14px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; height:100%;}
+  body{
+    background:radial-gradient(1200px 700px at 50% -10%, #161d2c 0%, var(--bg) 60%);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+    display:flex; align-items:center; justify-content:center; min-height:100%;
+    overflow-x:hidden;
+  }
+  #app{ width:100%; max-width:520px; padding:18px; }
+
+  .screen{ display:none; flex-direction:column; gap:16px; animation:fade .25s ease; }
+  .screen.active{ display:flex; }
+  @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+  .logo{ font-size:30px; font-weight:800; letter-spacing:.5px; margin:0; text-align:center; }
+  .logo span{ background:linear-gradient(90deg,var(--green),var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .tagline{ text-align:center; color:var(--muted); margin:0; font-size:14px; }
+
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:22px; }
+  .auth-card{ display:flex; flex-direction:column; gap:14px; }
+
+  .tabs{ display:flex; background:var(--bg2); border:1px solid var(--line); border-radius:10px; padding:4px; gap:4px; }
+  .tabs button{ flex:1; border:0; background:transparent; color:var(--muted); padding:9px; border-radius:7px; font-size:14px; font-weight:600; cursor:pointer; transition:.15s; }
+  .tabs button.active{ background:var(--panel2); color:var(--text); }
+
+  .field input{ width:100%; background:var(--bg2); border:1px solid var(--line); color:var(--text); padding:12px 14px; border-radius:10px; font-size:15px; outline:none; transition:.15s; }
+  .field input:focus{ border-color:var(--accent); box-shadow:0 0 0 3px rgba(91,140,255,.18); }
+
+  .btn{ border:0; border-radius:11px; padding:13px; font-size:15px; font-weight:700; cursor:pointer; transition:.15s; width:100%; }
+  .btn:active{ transform:scale(.98); }
+  .btn.primary{ background:linear-gradient(180deg,var(--green),var(--green2)); color:#06301c; }
+  .btn.accent{ background:linear-gradient(180deg,var(--accent),var(--accent2)); color:#fff; }
+  .btn.ghost{ background:transparent; color:var(--muted); border:1px solid var(--line); }
+  .btn.small{ width:auto; padding:8px 14px; font-size:13px; background:var(--panel2); color:var(--text); border:1px solid var(--line); }
+  .msg{ min-height:18px; margin:0; font-size:13px; text-align:center; color:var(--red); }
+  .msg.ok{ color:var(--green); }
+
+  .topbar{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .topbar .who{ font-size:14px; color:var(--muted); }
+  .topbar .who b{ color:var(--text); }
+
+  .mode-grid{ display:flex; flex-direction:column; gap:14px; }
+  .mode-card{ position:relative; overflow:hidden; background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:20px; cursor:pointer; transition:.18s; }
+  .mode-card:hover{ border-color:var(--accent); transform:translateY(-2px); }
+  .mode-card h3{ margin:0 0 6px; font-size:19px; }
+  .mode-card p{ margin:0; color:var(--muted); font-size:13.5px; line-height:1.5; }
+  .mode-card .emoji{ position:absolute; right:14px; top:10px; font-size:46px; opacity:.18; }
+  .mode-card .meta{ margin-top:10px; font-size:12px; color:var(--green); font-weight:600; }
+
+  .level-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:9px; }
+  .lv{ aspect-ratio:1; border-radius:10px; border:1px solid var(--line); background:var(--panel); color:var(--text); font-weight:700; font-size:15px; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:.15s; position:relative; }
+  .lv:hover:not(.locked){ border-color:var(--accent); transform:translateY(-2px); }
+  .lv.locked{ color:var(--faint); cursor:not-allowed; background:var(--bg2); }
+  .lv.done{ border-color:var(--green2); }
+  .lv.done::after{ content:"★"; position:absolute; top:3px; right:6px; font-size:10px; color:var(--gold); }
+  .lv .tag{ font-size:9px; color:var(--muted); font-weight:600; }
+  .lv.boss{ border-color:var(--gold); }
+
+  .hud{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .hud-stats{ display:flex; gap:14px; flex:1; justify-content:center; }
+  .hud-stats > div{ text-align:center; }
+  .hud-stats label{ display:block; font-size:10px; color:var(--faint); text-transform:uppercase; letter-spacing:.5px; }
+  .hud-stats span{ font-size:17px; font-weight:800; }
+
+  .game-wrap{ position:relative; align-self:center; border-radius:var(--radius); overflow:hidden; border:1px solid var(--line); background:var(--bg2); line-height:0; max-width:100%; }
+  canvas{ display:block; }
+
+  .overlay{ position:absolute; inset:0; background:rgba(8,11,17,.78); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; }
+  .overlay.hidden{ display:none; }
+  .overlay-card{ text-align:center; padding:26px; }
+  .overlay-card h2{ margin:0 0 6px; font-size:26px; }
+  .overlay-card p{ margin:0 0 18px; color:var(--muted); font-size:14px; }
+  #ov-actions{ display:flex; flex-direction:column; gap:10px; min-width:200px; }
+
+  .hint{ text-align:center; color:var(--faint); font-size:12px; }
+  .row{ display:flex; gap:10px; }
+  .row > *{ flex:1; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <section id="screen-auth" class="screen active">
+    <h1 class="logo">🐍 贪吃蛇 <span>Arena</span></h1>
+    <p class="tagline">登录保存你的闯关进度与最高分</p>
+    <div class="card auth-card">
+      <div class="tabs">
+        <button data-tab="login" class="active">登录</button>
+        <button data-tab="register">注册</button>
+      </div>
+      <div class="field"><input id="auth-name" placeholder="用户名" autocomplete="off" maxlength="16"></div>
+      <div class="field"><input id="auth-pass" type="password" placeholder="密码" autocomplete="off" maxlength="32"></div>
+      <p id="auth-msg" class="msg"></p>
+      <button id="auth-submit" class="btn primary">登录</button>
+      <button id="auth-guest" class="btn ghost">以游客身份进入</button>
+    </div>
+  </section>
+
+  <section id="screen-menu" class="screen">
+    <div class="topbar">
+      <span class="who">你好，<b id="menu-user">玩家</b></span>
+      <button id="btn-logout" class="btn small">退出登录</button>
+    </div>
+    <h1 class="logo">选择 <span>模式</span></h1>
+    <div class="mode-grid">
+      <div class="mode-card" data-mode="campaign">
+        <span class="emoji">🏰</span>
+        <h3>闯关模式</h3>
+        <p>100 个关卡，逐步加入障碍、敌方蛇与提速。击败前一关方可解锁下一关。</p>
+        <div class="meta" id="menu-campaign-meta">进度 0 / 100</div>
+      </div>
+      <div class="mode-card" data-mode="endless">
+        <span class="emoji">♾️</span>
+        <h3>无尽模式</h3>
+        <p>没有终点。越吃越快，敌方蛇陆续登场，看你能撑到多少分。</p>
+        <div class="meta" id="menu-endless-meta">最高分 0</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-levels" class="screen">
+    <div class="topbar">
+      <button id="lv-back" class="btn small">← 返回</button>
+      <b>闯关 · 100 关</b>
+      <span class="who" id="lv-progress">0 / 100</span>
+    </div>
+    <div id="level-grid" class="level-grid"></div>
+  </section>
+
+  <section id="screen-game" class="screen">
+    <div class="hud">
+      <button id="g-back" class="btn small">≡ 菜单</button>
+      <div class="hud-stats">
+        <div><label id="hud-mode-label">关卡</label><span id="hud-mode">1</span></div>
+        <div><label>分数</label><span id="hud-score">0</span></div>
+        <div id="hud-target-wrap"><label>目标</label><span id="hud-target">-</span></div>
+        <div id="hud-best-wrap"><label>最佳</label><span id="hud-best">0</span></div>
+      </div>
+      <button id="g-pause" class="btn small">⏸</button>
+    </div>
+    <div class="game-wrap">
+      <canvas id="game"></canvas>
+      <div id="overlay" class="overlay hidden">
+        <div class="overlay-card">
+          <h2 id="ov-title"></h2>
+          <p id="ov-sub"></p>
+          <div id="ov-actions"></div>
+        </div>
+      </div>
+    </div>
+    <div class="hint">方向键 / WASD 移动 · 空格暂停 · 手机可滑动屏幕</div>
+  </section>
+
+</div>
+<script>
+(function(){
+  'use strict';
+
+  /* ---------------- storage (safe even when sandboxed) ---------------- */
+  const mem = {};
+  const store = {
+    get(k){ try{ const v=localStorage.getItem(k); return v===null?(k in mem?mem[k]:null):v; }catch(e){ return k in mem?mem[k]:null; } },
+    set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} mem[k]=v; }
+  };
+  function hash(s){ let h=5381; for(let i=0;i<s.length;i++) h=(((h<<5)+h)^s.charCodeAt(i))>>>0; return h.toString(16); }
+  function loadAccounts(){
+    try{ const v=JSON.parse(store.get('snake.accounts')||'{}'); return (v && typeof v==='object' && !Array.isArray(v)) ? v : {}; }
+    catch(e){ return {}; }
+  }
+  function saveAccounts(){ store.set('snake.accounts', JSON.stringify(accounts)); }
+  function freshProgress(){ return { unlocked:1, done:{}, endlessBest:0 }; }
+  function normalizeProgress(p){
+    const np = Object.assign(freshProgress(), p||{});
+    if(!np.done || typeof np.done!=='object' || Array.isArray(np.done)) np.done={};
+    if(typeof np.unlocked!=='number' || np.unlocked<1) np.unlocked=1;
+    if(typeof np.endlessBest!=='number' || np.endlessBest<0) np.endlessBest=0;
+    return np;
+  }
+
+  let accounts = loadAccounts();
+  let user = null;            // { name, guest }
+  let guestProgress = freshProgress();
+  function progress(){ return user.guest ? guestProgress : accounts[user.name].progress; }
+  function persist(){ if(!user.guest) saveAccounts(); }
+
+  /* ---------------- screen router ---------------- */
+  const screens = {};
+  document.querySelectorAll('.screen').forEach(s=>screens[s.id]=s);
+  function show(id){
+    Object.values(screens).forEach(s=>s.classList.remove('active'));
+    screens[id].classList.add('active');
+  }
+
+  /* ---------------- auth UI ---------------- */
+  const $ = id=>document.getElementById(id);
+  let authMode = 'login';
+  document.querySelectorAll('.tabs button').forEach(b=>{
+    b.onclick = ()=>{
+      authMode = b.dataset.tab;
+      document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('active', x===b));
+      $('auth-submit').textContent = authMode==='login' ? '登录' : '注册';
+      authMsg('');
+    };
+  });
+  function authMsg(t, ok){ const m=$('auth-msg'); m.textContent=t; m.classList.toggle('ok', !!ok); }
+
+  $('auth-submit').onclick = ()=>{
+    const name = $('auth-name').value.trim();
+    const pass = $('auth-pass').value;
+    if(name.length<2) return authMsg('用户名至少 2 个字符');
+    if(pass.length<3) return authMsg('密码至少 3 个字符');
+    if(authMode==='register'){
+      if(accounts[name]) return authMsg('该用户名已被注册');
+      accounts[name] = { pass:hash(pass), progress:freshProgress() };
+      saveAccounts();
+      user = { name, guest:false };
+      enterMenu();
+    } else {
+      const a = accounts[name];
+      if(!a) return authMsg('用户不存在，请先注册');
+      if(a.pass !== hash(pass)) return authMsg('密码错误');
+      a.progress = normalizeProgress(a.progress);
+      user = { name, guest:false };
+      enterMenu();
+    }
+  };
+  $('auth-guest').onclick = ()=>{ user={ name:'游客', guest:true }; guestProgress=freshProgress(); enterMenu(); };
+  $('auth-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') $('auth-submit').click(); });
+
+  $('btn-logout').onclick = ()=>{ stopGame(); user=null; $('auth-name').value=''; $('auth-pass').value=''; authMsg(''); show('screen-auth'); };
+
+  /* ---------------- menu ---------------- */
+  function enterMenu(){
+    stopGame();
+    $('menu-user').textContent = user.name;
+    const p = progress();
+    $('menu-campaign-meta').textContent = '进度 ' + Object.keys(p.done).length + ' / 100';
+    $('menu-endless-meta').textContent = '最高分 ' + p.endlessBest;
+    show('screen-menu');
+  }
+  document.querySelectorAll('.mode-card').forEach(c=>{
+    c.onclick = ()=>{ if(c.dataset.mode==='campaign') enterLevels(); else startEndless(); };
+  });
+
+  /* ---------------- level select ---------------- */
+  $('lv-back').onclick = enterMenu;
+  function enterLevels(){
+    const p = progress();
+    $('lv-progress').textContent = Object.keys(p.done).length + ' / 100';
+    const grid = $('level-grid');
+    grid.innerHTML = '';
+    for(let n=1;n<=100;n++){
+      const cfg = levelConfig(n);
+      const el = document.createElement('button');
+      el.className = 'lv';
+      const unlocked = n <= p.unlocked;
+      if(!unlocked) el.classList.add('locked');
+      if(p.done[n]) el.classList.add('done');
+      if(cfg.boss) el.classList.add('boss');
+      el.innerHTML = '<span>'+n+'</span><span class="tag">'+cfg.label+'</span>';
+      if(unlocked) el.onclick = ()=>startCampaign(n);
+      grid.appendChild(el);
+    }
+    show('screen-levels');
+  }
+
+  /* ---------------- level design ---------------- */
+  function mulberry32(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+
+  function levelConfig(n){
+    const cols=20, rows=20;
+    const boss = n % 10 === 0;
+    const wrap = n % 10 === 5;                       // every 5th-in-decade: pass-through walls
+    const target = Math.min(30, 3 + Math.ceil(n*0.35));
+    let ai = n>=8 ? 1 + Math.floor((n-8)/30) : 0;    // first rival at L8, up to 4
+    ai = Math.min(4, ai);
+    if(boss) ai = Math.min(4, ai+1);                 // boss levels add one extra rival
+    const obstacles = wrap ? 0 : Math.min(50, Math.floor(n*0.6));
+    const tickMs = Math.max(70, 140 - Math.floor(n*0.7));
+    let label = '基础';
+    if(wrap) label='穿墙';
+    else if(boss) label='BOSS';
+    else if(ai>0) label='对战';
+    else if(obstacles>0) label='障碍';
+    return { n, cols, rows, target, ai, obstacles, tickMs, wrap, boss, label };
+  }
+
+  /* ---------------- game engine ---------------- */
+  const canvas = $('game');
+  const ctx = canvas.getContext('2d');
+  const AI_COLORS = [
+    {body:'#ff8a3d', head:'#ffa866'},
+    {body:'#5b8cff', head:'#86a9ff'},
+    {body:'#c06bff', head:'#d49aff'},
+    {body:'#ff6bb5', head:'#ff9ccf'}
+  ];
+  const DIRS = [ {x:0,y:-1}, {x:0,y:1}, {x:-1,y:0}, {x:1,y:0} ];
+
+  let G = null;     // current game state
+  let player = null;
+  let rafId = 0;
+
+  function stopGame(){ if(G) G.running=false; if(rafId){ cancelAnimationFrame(rafId); rafId=0; } }
+
+  function newGame(opts){
+    stopGame();
+
+    G = {
+      mode:opts.mode, cols:opts.cols, rows:opts.rows, cell:0, w:0, h:0,
+      wrap:!!opts.wrap, target:opts.target||0, level:opts.level||0,
+      obstacles:new Set(), food:[], snakes:[],
+      tickMs:opts.tickMs, baseTick:opts.tickMs,
+      running:true, paused:false, over:false, gen:(G?G.gen+1:1),
+      best:opts.best||0, foodCount:opts.foodCount||1, aiCap:opts.aiCap||0
+    };
+
+    // obstacles (deterministic per level)
+    if(opts.obstacles){
+      const rng = mulberry32(9000 + (opts.level||1)*131);
+      const mid = Math.floor(opts.rows/2);
+      let placed=0, guard=0;
+      while(placed<opts.obstacles && guard++<2000){
+        const x=Math.floor(rng()*opts.cols), y=Math.floor(rng()*opts.rows);
+        if(Math.abs(y-mid)<=1 && x<8) continue;        // keep player's start lane clear
+        const k=x+','+y;
+        if(!G.obstacles.has(k)){ G.obstacles.add(k); placed++; }
+      }
+    }
+
+    // player snake
+    const sy = Math.floor(opts.rows/2);
+    player = makeSnake([{x:4,y:sy},{x:3,y:sy},{x:2,y:sy}], {x:1,y:0}, true, {body:'#3ddc84', head:'#7af0ab'});
+    G.snakes.push(player);
+
+    // initial AI snakes
+    for(let i=0;i<(opts.ai||0);i++) spawnAISnake();
+
+    spawnFood(G.foodCount);
+    layoutCanvas();
+    syncHud();
+    hideOverlay();
+    loop();
+  }
+
+  function makeSnake(cells, dir, isPlayer, colors){
+    return { cells, dir, nextDir:dir, alive:true, ai:!isPlayer, score:0, colors };
+  }
+
+  function occupied(){
+    const set = new Set(G.obstacles);
+    for(const s of G.snakes) if(s.alive) for(const c of s.cells) set.add(c.x+','+c.y);
+    for(const f of G.food) set.add(f.x+','+f.y);
+    return set;
+  }
+  function freeCells(){
+    const occ = occupied();
+    const list=[];
+    for(let y=0;y<G.rows;y++) for(let x=0;x<G.cols;x++){ if(!occ.has(x+','+y)) list.push({x,y}); }
+    return list;
+  }
+  function spawnFood(count){
+    for(let i=0;i<count;i++){
+      const cells = freeCells();
+      if(!cells.length) return;
+      G.food.push(cells[Math.floor(Math.random()*cells.length)]);
+    }
+  }
+  function spawnAISnake(){
+    if(G.snakes.filter(s=>s.ai&&s.alive).length >= 4) return;
+    const cells = freeCells();
+    if(cells.length<12) return;
+    const free = new Set(cells.map(c=>c.x+','+c.y));
+    const spot = cells[Math.floor(Math.random()*cells.length)];
+    // build a 3-cell body extending opposite to a direction that has room
+    let body=null, dir=null;
+    for(const d of DIRS){
+      const cand=[{x:spot.x,y:spot.y}];
+      let ok=true;
+      for(let i=1;i<3;i++){
+        const x=spot.x-d.x*i, y=spot.y-d.y*i;
+        if(!inBounds(x,y) || !free.has(x+','+y)){ ok=false; break; }
+        cand.push({x,y});
+      }
+      if(ok){ body=cand; dir=d; break; }
+    }
+    if(!body){ body=[{x:spot.x,y:spot.y}]; dir={x:0,y:1}; }
+    const idx = G.snakes.filter(s=>s.ai).length % AI_COLORS.length;
+    G.snakes.push(makeSnake(body, dir, false, AI_COLORS[idx]));
+  }
+
+  function inBounds(x,y){ return x>=0 && y>=0 && x<G.cols && y<G.rows; }
+  function isObstacle(x,y){ return G.obstacles.has(x+','+y); }
+  function manhattan(ax,ay,bx,by){ return Math.abs(ax-bx)+Math.abs(ay-by); }
+
+  function nearestFood(x,y){
+    let best=null, bd=1e9;
+    for(const f of G.food){ const d=manhattan(x,y,f.x,f.y); if(d<bd){ bd=d; best=f; } }
+    return best;
+  }
+
+  // cells blocked for AI planning: obstacles + snake bodies; a tail is free only if that snake can't grow this tick
+  function planBlocked(){
+    const set = new Set(G.obstacles);
+    for(const s of G.snakes){
+      if(!s.alive) continue;
+      const head = s.cells[0];
+      const mightGrow = G.food.some(f=>Math.abs(f.x-head.x)+Math.abs(f.y-head.y)===1);
+      const limit = mightGrow ? s.cells.length : s.cells.length-1;
+      for(let i=0;i<limit;i++) set.add(s.cells[i].x+','+s.cells[i].y);
+    }
+    return set;
+  }
+  function floodFree(sx,sy,blocked){
+    const seen=new Set([sx+','+sy]);
+    const q=[[sx,sy]]; let qi=0, count=0; const cap=45;
+    while(qi<q.length && count<cap){
+      const cur=q[qi++]; const x=cur[0], y=cur[1]; count++;
+      for(const d of DIRS){
+        let nx=x+d.x, ny=y+d.y;
+        if(G.wrap){ nx=(nx+G.cols)%G.cols; ny=(ny+G.rows)%G.rows; }
+        if(!G.wrap && !inBounds(nx,ny)) continue;
+        const k=nx+','+ny;
+        if(seen.has(k)||blocked.has(k)) continue;
+        seen.add(k); q.push([nx,ny]);
+      }
+    }
+    return count;
+  }
+  function aiDir(snake, blocked){
+    const head = snake.cells[0];
+    const food = nearestFood(head.x,head.y);
+    let best=null, bestScore=-1e9;
+    for(const d of DIRS){
+      if(snake.cells.length>1 && d.x===-snake.dir.x && d.y===-snake.dir.y) continue;
+      let nx=head.x+d.x, ny=head.y+d.y;
+      if(G.wrap){ nx=(nx+G.cols)%G.cols; ny=(ny+G.rows)%G.rows; }
+      if(!G.wrap && !inBounds(nx,ny)) continue;
+      if(blocked.has(nx+','+ny)) continue;
+      const space = floodFree(nx,ny,blocked);
+      const dist = food ? manhattan(nx,ny,food.x,food.y) : 0;
+      const score = space*3 - dist*2 + Math.random()*2;
+      if(score>bestScore){ bestScore=score; best=d; }
+    }
+    return best || snake.dir;
+  }
+
+  function step(){
+    // set directions
+    player.dir = player.nextDir;
+    if(G.snakes.some(s=>s.ai&&s.alive)){
+      const blocked = planBlocked();
+      for(const s of G.snakes) if(s.ai && s.alive) s.dir = aiDir(s, blocked);
+    }
+
+    // compute moves
+    const moves = new Map();
+    for(const s of G.snakes){
+      if(!s.alive) continue;
+      let nx=s.cells[0].x+s.dir.x, ny=s.cells[0].y+s.dir.y;
+      if(G.wrap){ if(nx<0)nx=G.cols-1; else if(nx>=G.cols)nx=0; if(ny<0)ny=G.rows-1; else if(ny>=G.rows)ny=0; }
+      const willEat = G.food.some(f=>f.x===nx&&f.y===ny);
+      moves.set(s, { head:{x:nx,y:ny}, willEat });
+    }
+
+    const dead = new Set();
+    // walls / obstacles
+    for(const s of G.snakes){
+      if(!s.alive) continue;
+      const {head}=moves.get(s);
+      if((!G.wrap && !inBounds(head.x,head.y)) || isObstacle(head.x,head.y)) dead.add(s);
+    }
+    // head-to-head (resolve before body so a fresh corpse's tail counts as solid)
+    const alive = G.snakes.filter(s=>s.alive);
+    for(let i=0;i<alive.length;i++) for(let j=i+1;j<alive.length;j++){
+      const a=moves.get(alive[i]).head, b=moves.get(alive[j]).head;
+      if(a.x===b.x && a.y===b.y){ dead.add(alive[i]); dead.add(alive[j]); }
+    }
+    // body collisions: a snake's tail vacates only if it survives this tick AND is not growing
+    for(const s of G.snakes){
+      if(!s.alive || dead.has(s)) continue;
+      const {head}=moves.get(s);
+      let hit=false;
+      for(const o of G.snakes){
+        if(!o.alive) continue;
+        const vacates = !moves.get(o).willEat && !dead.has(o);
+        const limit = vacates ? o.cells.length-1 : o.cells.length;
+        for(let i=0;i<limit;i++){
+          if(o===s && i===0) continue;                          // own current head
+          if(o.cells[i].x===head.x && o.cells[i].y===head.y){ hit=true; break; }
+        }
+        if(hit) break;
+      }
+      if(hit) dead.add(s);
+    }
+
+    // apply survivors
+    for(const s of G.snakes){
+      if(!s.alive || dead.has(s)) continue;
+      const {head, willEat}=moves.get(s);
+      s.cells.unshift(head);
+      if(willEat){
+        const fi = G.food.findIndex(f=>f.x===head.x&&f.y===head.y);
+        if(fi>=0) G.food.splice(fi,1);
+        s.score++;
+        spawnFood(1);
+        if(s===player) onPlayerAte();
+      } else {
+        s.cells.pop();
+      }
+    }
+    for(const s of dead) s.alive=false;
+
+    if(!player.alive){ return gameOver(); }
+    if(G.mode==='campaign' && player.score>=G.target){ return victory(); }
+
+    // drop dead AI snakes from the board (keep player reference for game-over screen)
+    G.snakes = G.snakes.filter(s=> s===player || s.alive);
+
+    syncHud();
+  }
+
+  function onPlayerAte(){
+    if(G.mode==='endless'){
+      G.tickMs = Math.max(60, G.baseTick - player.score*2);
+      G.best = Math.max(G.best, player.score);
+      const p = progress();
+      if(player.score > p.endlessBest){ p.endlessBest = player.score; persist(); }   // persist the moment a record is set
+      if([5,12,20,30].includes(player.score)) spawnAISnake();
+    }
+  }
+
+  /* ---------------- render ---------------- */
+  function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+
+  function layoutCanvas(){
+    if(!G) return;
+    const app = $('app');
+    const avail = Math.min(440, (app ? app.clientWidth : 440) - 38);   // fit the container, never overflow
+    const cell = Math.max(8, Math.floor(avail/G.cols));
+    G.cell = cell; G.w = cell*G.cols; G.h = cell*G.rows;
+    const dpr = window.devicePixelRatio||1;
+    canvas.style.width=G.w+'px'; canvas.style.height=G.h+'px';
+    canvas.width=G.w*dpr; canvas.height=G.h*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    render();
+  }
+  window.addEventListener('resize', layoutCanvas);
+
+  function render(t){
+    if(!G || !G.cell) return;
+    const c=G.cell;
+    ctx.clearRect(0,0,G.w,G.h);
+    ctx.fillStyle='#0d111a'; ctx.fillRect(0,0,G.w,G.h);
+    ctx.strokeStyle='rgba(255,255,255,.03)'; ctx.lineWidth=1;
+    for(let x=1;x<G.cols;x++){ ctx.beginPath(); ctx.moveTo(x*c,0); ctx.lineTo(x*c,G.h); ctx.stroke(); }
+    for(let y=1;y<G.rows;y++){ ctx.beginPath(); ctx.moveTo(0,y*c); ctx.lineTo(G.w,y*c); ctx.stroke(); }
+    // obstacles
+    ctx.fillStyle='#2b3346';
+    for(const k of G.obstacles){ const p=k.split(','); rr(p[0]*c+1,p[1]*c+1,c-2,c-2,3); ctx.fill(); }
+    // food (pulse)
+    const pulse = 0.5 + 0.5*Math.sin((t||0)/200);
+    for(const f of G.food){
+      const pad = 3 + pulse*1.5;
+      ctx.fillStyle='rgba(255,90,95,.25)';
+      ctx.beginPath(); ctx.arc(f.x*c+c/2, f.y*c+c/2, (c-2*pad)/2+2+pulse*2, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle='#ff5a5f';
+      ctx.beginPath(); ctx.arc(f.x*c+c/2, f.y*c+c/2, (c-2*pad)/2, 0, Math.PI*2); ctx.fill();
+    }
+    // snakes
+    for(const s of G.snakes){
+      if(!s.alive && s!==player) continue;
+      for(let i=s.cells.length-1;i>=0;i--){
+        const cell=s.cells[i];
+        if(!s.alive) ctx.fillStyle = i===0 ? '#6b7280' : '#4b5563';
+        else ctx.fillStyle = i===0 ? s.colors.head : s.colors.body;
+        rr(cell.x*c+1, cell.y*c+1, c-2, c-2, i===0?5:4); ctx.fill();
+      }
+      // eyes on head (living snakes only)
+      if(s.alive && s.cells.length){
+        const h=s.cells[0], d=s.dir;
+        ctx.fillStyle='#0b0e14';
+        const ex=h.x*c, ey=h.y*c;
+        const e1x=ex+c*0.5+d.x*c*0.18 - d.y*c*0.16, e1y=ey+c*0.5+d.y*c*0.18 - d.x*c*0.16;
+        const e2x=ex+c*0.5+d.x*c*0.18 + d.y*c*0.16, e2y=ey+c*0.5+d.y*c*0.18 + d.x*c*0.16;
+        const r=Math.max(1.4,c*0.07);
+        ctx.beginPath(); ctx.arc(e1x,e1y,r,0,Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(e2x,e2y,r,0,Math.PI*2); ctx.fill();
+      }
+    }
+  }
+
+  /* ---------------- loop ---------------- */
+  function loop(){
+    const myGen = G.gen;
+    let last=0, acc=0;
+    const frame = (t)=>{
+      if(!G || G.gen!==myGen || !G.running) return;
+      if(G.paused){ last=t; render(t); rafId=requestAnimationFrame(frame); return; }
+      if(!last) last=t;
+      acc += t-last; last=t;
+      if(acc > G.tickMs*4) acc = G.tickMs*4;          // clamp so a backgrounded tab doesn't burst-catch-up
+      let n=0;
+      while(acc>=G.tickMs && n<4){ step(); acc-=G.tickMs; n++; if(!G.running) break; }
+      render(t);
+      if(G && G.running) rafId=requestAnimationFrame(frame);
+    };
+    rafId=requestAnimationFrame(frame);
+  }
+
+  /* ---------------- HUD + overlays ---------------- */
+  function syncHud(){
+    const campaign = G.mode==='campaign';
+    $('hud-mode-label').textContent = campaign ? '关卡' : '模式';
+    $('hud-mode').textContent = campaign ? G.level : '无尽';
+    $('hud-score').textContent = player.score;
+    $('hud-target-wrap').style.display = campaign ? '' : 'none';
+    $('hud-best-wrap').style.display = campaign ? 'none' : '';
+    $('hud-target').textContent = G.target;
+    $('hud-best').textContent = Math.max(G.best, player.score);
+  }
+  function hideOverlay(){ $('overlay').classList.add('hidden'); }
+  function showOverlay(title, sub, actions){
+    $('ov-title').textContent = title;
+    $('ov-sub').textContent = sub;
+    const wrap=$('ov-actions'); wrap.innerHTML='';
+    actions.forEach(a=>{
+      const b=document.createElement('button');
+      b.className='btn '+(a.kind||'accent'); b.textContent=a.label; b.onclick=a.fn;
+      wrap.appendChild(b);
+    });
+    $('overlay').classList.remove('hidden');
+  }
+
+  function gameOver(){
+    G.running=false; G.over=true;
+    if(G.mode==='endless'){
+      const p=progress();
+      if(player.score>p.endlessBest){ p.endlessBest=player.score; persist(); }
+    }
+    render();
+    showOverlay('游戏结束', '本局得分 '+player.score, [
+      { label:'再来一局', kind:'primary', fn:()=> G.mode==='campaign'? startCampaign(G.level) : startEndless() },
+      { label:'返回菜单', kind:'ghost', fn:enterMenu }
+    ]);
+  }
+  function victory(){
+    G.running=false; G.over=true;
+    const p=progress();
+    p.done[G.level]=true;
+    if(G.level+1>p.unlocked && G.level<100) p.unlocked=G.level+1;
+    persist();
+    render();
+    const isLast = G.level>=100;
+    const actions=[];
+    if(!isLast) actions.push({ label:'下一关 →', kind:'primary', fn:()=>startCampaign(G.level+1) });
+    actions.push({ label:'返回选关', kind: isLast?'primary':'ghost', fn:enterLevels });
+    showOverlay(isLast?'🏆 全部通关！':'过关！', isLast?'你击败了全部 100 关':'第 '+G.level+' 关完成 · 得分 '+player.score, actions);
+  }
+
+  /* ---------------- start modes ---------------- */
+  function startCampaign(n){
+    const cfg = levelConfig(n);
+    show('screen-game');
+    newGame({ mode:'campaign', level:n, cols:cfg.cols, rows:cfg.rows, wrap:cfg.wrap,
+      target:cfg.target, obstacles:cfg.obstacles, ai:cfg.ai, tickMs:cfg.tickMs, foodCount:1 });
+  }
+  function startEndless(){
+    show('screen-game');
+    const p=progress();
+    newGame({ mode:'endless', cols:24, rows:24, wrap:false, target:0, obstacles:0,
+      ai:0, tickMs:140, foodCount:3, best:p.endlessBest, aiCap:3 });
+  }
+
+  /* ---------------- game screen controls ---------------- */
+  $('g-back').onclick = enterMenu;
+  $('g-pause').onclick = togglePause;
+  function togglePause(){
+    if(!G || G.over || (!G.running && !G.paused)) return;
+    G.paused=!G.paused;
+    if(G.paused) showOverlay('已暂停','', [{label:'继续', kind:'primary', fn:togglePause}]);
+    else hideOverlay();
+  }
+
+  /* ---------------- input ---------------- */
+  function setDir(dx,dy){
+    if(!G || G.paused || G.over) return;
+    const d=player.dir;
+    if(player.cells.length>1 && dx===-d.x && dy===-d.y) return;
+    player.nextDir={x:dx,y:dy};
+  }
+  window.addEventListener('keydown', e=>{
+    const k=e.key.toLowerCase();
+    if(k==='arrowup'||k==='w'){ setDir(0,-1); e.preventDefault(); }
+    else if(k==='arrowdown'||k==='s'){ setDir(0,1); e.preventDefault(); }
+    else if(k==='arrowleft'||k==='a'){ setDir(-1,0); e.preventDefault(); }
+    else if(k==='arrowright'||k==='d'){ setDir(1,0); e.preventDefault(); }
+    else if(k===' '){ togglePause(); e.preventDefault(); }
+  });
+  // auto-pause when the tab is hidden
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden && G && G.running && !G.paused && !G.over) togglePause();
+  });
+  // touch swipe
+  let tx=0,ty=0;
+  canvas.addEventListener('touchstart', e=>{ const t=e.touches[0]; tx=t.clientX; ty=t.clientY; }, {passive:true});
+  canvas.addEventListener('touchmove', e=>{
+    if(!tx&&!ty) return; const t=e.touches[0];
+    const dx=t.clientX-tx, dy=t.clientY-ty;
+    if(Math.abs(dx)<20 && Math.abs(dy)<20) return;
+    if(Math.abs(dx)>Math.abs(dy)) setDir(dx>0?1:-1,0); else setDir(0,dy>0?1:-1);
+    tx=t.clientX; ty=t.clientY; e.preventDefault();
+  }, {passive:false});
+
+  // boot
+  show('screen-auth');
+})();
+</script>
+</body>
+</html>
